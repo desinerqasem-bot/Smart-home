@@ -2,669 +2,1234 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>انعكاس المستقبل</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>انعكاس المستقبل • بيت المها الذكي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;700;900&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--black:#050508;--deep:#0a0a12;--pink:#ff2d78;--pink-soft:#ff6fa8;--pink-glow:rgba(255,45,120,.3);--violet:#7b2fff;--violet-soft:#a855f7;--violet-glow:rgba(123,47,255,.25);--teal:#00f5d4;--teal-glow:rgba(0,245,212,.2);--glass:rgba(255,255,255,.04);--glass-border:rgba(255,255,255,.08);--text:#f0e6ff;--text-dim:rgba(240,230,255,.5);}
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+:root{
+  --rose:    #ff3d8b;
+  --rose2:   #ff79b0;
+  --rose3:   #ffc1d8;
+  --lilac:   #c084fc;
+  --lilac2:  #e9d5ff;
+  --violet:  #8b5cf6;
+  --mint:    #34d399;
+  --gold:    #fbbf24;
+  --sky:     #38bdf8;
+
+  --dark:    #0c0a14;
+  --dark2:   #13101f;
+  --dark3:   #1a1528;
+  --panel:   rgba(255,255,255,.04);
+  --border:  rgba(255,255,255,.09);
+  --text:    #f5eeff;
+  --muted:   rgba(245,238,255,.45);
+
+  --rg: linear-gradient(135deg,var(--rose),var(--lilac));
+  --rg2: linear-gradient(135deg,var(--lilac),var(--violet));
+}
+
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{width:100%;height:100%;overflow:hidden;}
-body{background:var(--black);color:var(--text);font-family:'Cairo',sans-serif;cursor:none;}
+html,body{width:100%;height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+body{
+  background:var(--dark);
+  color:var(--text);
+  font-family:'Cairo',sans-serif;
+  cursor:none;
+}
 
-#cursor{position:fixed;width:12px;height:12px;background:var(--pink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s;box-shadow:0 0 15px var(--pink),0 0 30px var(--pink-glow);}
-#cursor-ring{position:fixed;width:40px;height:40px;border:1px solid rgba(255,45,120,.5);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .1s ease-out,top .1s ease-out;}
+/* ─── CUSTOM CURSOR ─── */
+#cur{
+  position:fixed;width:14px;height:14px;
+  background:var(--rose);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:width .18s,height .18s;
+  box-shadow:0 0 16px var(--rose),0 0 40px rgba(255,61,139,.25);
+}
+#cur-trail{
+  position:fixed;width:36px;height:36px;
+  border:1.5px solid rgba(192,132,252,.5);
+  border-radius:50%;pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:left .14s ease-out,top .14s ease-out;
+}
+body:has(button:hover) #cur,
+body:has(.room-card:hover) #cur,
+body:has(.toggle:hover) #cur{
+  width:22px;height:22px;
+  background:var(--lilac);
+}
 
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9990;opacity:.45;}
+/* ─── PARTICLES CANVAS ─── */
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none;}
 
-.ambient{position:fixed;inset:0;pointer-events:none;z-index:0;}
-.ambient::before{content:'';position:absolute;width:70vw;height:70vw;background:radial-gradient(circle,rgba(123,47,255,.12) 0%,transparent 70%);top:-20%;left:-20%;animation:ambFloat 9s ease-in-out infinite;}
-.ambient::after{content:'';position:absolute;width:55vw;height:55vw;background:radial-gradient(circle,rgba(255,45,120,.1) 0%,transparent 70%);bottom:-15%;right:-10%;animation:ambFloat 11s ease-in-out infinite reverse;}
-@keyframes ambFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(3%,4%) scale(1.06);}}
+/* ─── AMBIENT BLOBS ─── */
+.blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
+.blob-a{width:55vw;height:55vw;background:rgba(139,92,246,.1);top:-18%;right:-12%;animation:bFloat 12s ease-in-out infinite;}
+.blob-b{width:45vw;height:45vw;background:rgba(255,61,139,.09);bottom:-14%;left:-10%;animation:bFloat 9s ease-in-out infinite reverse;}
+.blob-c{width:30vw;height:30vw;background:rgba(52,211,153,.06);top:40%;left:35%;animation:bFloat 15s ease-in-out infinite 3s;}
+@keyframes bFloat{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(3%,5%) scale(1.07);}}
 
-.page{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;opacity:0;pointer-events:none;transition:opacity .5s ease;padding:20px;overflow:hidden;}
+/* ─── PAGES ─── */
+.page{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:1;opacity:0;pointer-events:none;
+  transition:opacity .55s cubic-bezier(.4,0,.2,1);
+  padding:16px;overflow:hidden;
+}
 .page.active{opacity:1;pointer-events:all;}
 #rooms-page,#detail-page{overflow-y:auto;justify-content:flex-start;padding:0;}
 
-/* ── Sound indicator ── */
-#sound-ind{position:fixed;top:14px;left:14px;z-index:500;display:flex;align-items:center;gap:8px;background:rgba(5,5,8,.8);border:1px solid rgba(255,45,120,.35);border-radius:30px;padding:6px 14px;font-size:11px;color:var(--pink-soft);backdrop-filter:blur(12px);opacity:0;transition:opacity .35s;pointer-events:none;}
-#sound-ind.show{opacity:1;}
-.sbars{display:flex;align-items:flex-end;gap:2px;height:13px;}
-.sbars span{width:3px;background:var(--pink);border-radius:2px;animation:sbar .6s ease-in-out infinite alternate;}
+/* ─── SOUND BADGE ─── */
+#snd{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+  z-index:500;display:flex;align-items:center;gap:9px;
+  background:rgba(12,10,20,.85);
+  border:1px solid rgba(255,61,139,.35);
+  border-radius:30px;padding:7px 18px;
+  font-size:12px;font-family:'Cairo',sans-serif;
+  color:var(--rose2);backdrop-filter:blur(16px);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;white-space:nowrap;
+}
+#snd.show{transform:translateX(-50%) translateY(0);}
+.sbars{display:flex;align-items:flex-end;gap:2px;height:14px;}
+.sbars span{width:3px;background:var(--rose);border-radius:2px;animation:sb .6s ease-in-out infinite alternate;}
 .sbars span:nth-child(1){height:4px;animation-delay:0s;}
-.sbars span:nth-child(2){height:10px;animation-delay:.15s;}
+.sbars span:nth-child(2){height:11px;animation-delay:.15s;}
 .sbars span:nth-child(3){height:6px;animation-delay:.3s;}
-.sbars span:nth-child(4){height:12px;animation-delay:.1s;}
-.sbars span:nth-child(5){height:5px;animation-delay:.25s;}
-@keyframes sbar{from{transform:scaleY(.35);}to{transform:scaleY(1);}}
+.sbars span:nth-child(4){height:13px;animation-delay:.08s;}
+.sbars span:nth-child(5){height:5px;animation-delay:.22s;}
+@keyframes sb{from{transform:scaleY(.3);}to{transform:scaleY(1);}}
 
-/* ── MIRROR ── */
-#mirror-page{background:linear-gradient(135deg,#050508 0%,#0d0d1a 50%,#050508 100%);}
-.mirror-frame{position:relative;width:min(450px,94vw);aspect-ratio:9/16;max-height:92vh;background:linear-gradient(160deg,#0f0f1e,#070710);border-radius:28px;border:1px solid rgba(123,47,255,.3);box-shadow:0 0 60px rgba(123,47,255,.15),0 0 120px rgba(255,45,120,.08),inset 0 0 80px rgba(0,0,0,.8);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
-.mirror-frame::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.04) 0%,transparent 40%,rgba(255,255,255,.02) 100%);pointer-events:none;border-radius:28px;}
-.mirror-frame::after{content:'';position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--pink),transparent);top:0;animation:scanDown 4s linear infinite;opacity:.4;pointer-events:none;}
-@keyframes scanDown{0%{top:0;opacity:.7;}100%{top:100%;opacity:0;}}
-.mc{position:absolute;width:20px;height:20px;border-color:var(--violet-soft);border-style:solid;opacity:.6;}
-.mc.tl{top:12px;left:12px;border-width:2px 0 0 2px;}
-.mc.tr{top:12px;right:12px;border-width:2px 2px 0 0;}
-.mc.bl{bottom:12px;left:12px;border-width:0 0 2px 2px;}
-.mc.br{bottom:12px;right:12px;border-width:0 2px 2px 0;}
-.mirror-time{font-family:'Orbitron',monospace;font-size:clamp(36px,9vw,66px);font-weight:700;background:linear-gradient(180deg,#fff 0%,rgba(200,150,255,.8) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;}
-.mirror-date{font-size:11px;color:var(--text-dim);letter-spacing:3px;font-weight:300;}
-.mirror-divider{width:60%;height:1px;background:linear-gradient(90deg,transparent,var(--violet-soft),var(--pink),transparent);opacity:.4;}
-.mirror-input-wrap{display:flex;flex-direction:column;align-items:center;gap:11px;width:80%;}
-.mirror-label{font-size:10px;letter-spacing:4px;color:var(--text-dim);text-transform:uppercase;}
-.mirror-input{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(123,47,255,.4);border-radius:12px;padding:12px 16px;color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;text-align:center;outline:none;transition:all .3s;}
-.mirror-input:focus{border-color:var(--pink);box-shadow:0 0 18px var(--pink-glow);}
-.mirror-input::placeholder{color:rgba(255,255,255,.2);letter-spacing:2px;}
-.mirror-btn{background:linear-gradient(135deg,var(--violet),var(--pink));border:none;border-radius:12px;padding:12px 34px;color:#fff;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:none;transition:all .3s;letter-spacing:.5px;position:relative;overflow:hidden;}
-.mirror-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.2),transparent);opacity:0;transition:opacity .3s;}
-.mirror-btn:hover::before{opacity:1;}
-.mirror-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px var(--pink-glow);}
-.mirror-btn:active{transform:scale(.97);}
-.mirror-msg{font-size:12px;text-align:center;padding:12px 16px;border-radius:10px;line-height:1.9;animation:fadeUp .5s ease;width:90%;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+/* ══════════════════════════════════════════
+   PAGE 1 — MIRROR
+══════════════════════════════════════════ */
+#mirror-page{
+  background:radial-gradient(ellipse 70% 70% at 50% 0%,rgba(139,92,246,.18) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 50% at 20% 100%,rgba(255,61,139,.12) 0%,transparent 60%),
+             var(--dark);
+}
 
-/* ── ROOMS ── */
-.rooms-header{width:100%;max-width:600px;padding:32px 20px 0;text-align:center;flex-shrink:0;}
-.rooms-greeting{font-size:11px;color:var(--pink-soft);letter-spacing:3px;margin-bottom:5px;}
-.rooms-title{font-size:clamp(19px,5vw,28px);font-weight:900;background:linear-gradient(135deg,#fff 30%,var(--violet-soft));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
-.rooms-sub{font-size:11px;color:var(--text-dim);letter-spacing:2px;}
-.rooms-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;width:100%;max-width:600px;padding:18px 14px 32px;}
-.room-card{background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;padding:20px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:none;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;backdrop-filter:blur(20px);}
-.room-card::before{content:'';position:absolute;inset:0;border-radius:20px;background:radial-gradient(circle at 50% 0%,var(--cg,rgba(255,45,120,.12)) 0%,transparent 70%);opacity:0;transition:opacity .3s;}
+.mirror-wrap{
+  position:relative;
+  width:min(420px,92vw);
+  aspect-ratio:9/17;
+  max-height:91vh;
+}
+
+/* outer glow ring */
+.mirror-wrap::before{
+  content:'';position:absolute;inset:-3px;
+  border-radius:36px;
+  background:linear-gradient(160deg,var(--rose),var(--lilac),var(--violet),var(--rose));
+  background-size:300% 300%;
+  animation:gradRot 5s linear infinite;
+  opacity:.7;z-index:-1;
+}
+@keyframes gradRot{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+
+/* glass body */
+.mirror-body{
+  width:100%;height:100%;
+  background:linear-gradient(165deg,#161026,#0e0b1d);
+  border-radius:34px;
+  border:1px solid rgba(255,255,255,.1);
+  overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;
+  box-shadow:inset 0 0 100px rgba(0,0,0,.7);
+  position:relative;
+}
+
+/* reflection streak */
+.mirror-body::before{
+  content:'';position:absolute;
+  width:60%;height:100%;
+  background:linear-gradient(105deg,rgba(255,255,255,.06) 0%,transparent 40%);
+  top:0;left:-10%;pointer-events:none;border-radius:34px;
+}
+
+/* animated scan line */
+.mirror-body::after{
+  content:'';position:absolute;
+  width:100%;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(255,61,139,.6),transparent);
+  top:0;animation:scan 5s linear infinite;pointer-events:none;
+}
+@keyframes scan{from{top:0;opacity:.9;}to{top:100%;opacity:0;}}
+
+/* corner brackets */
+.bk{position:absolute;width:22px;height:22px;border-color:var(--rose2);border-style:solid;opacity:.55;}
+.bk.tl{top:14px;left:14px;border-width:2px 0 0 2px;}
+.bk.tr{top:14px;right:14px;border-width:2px 2px 0 0;}
+.bk.bl{bottom:14px;left:14px;border-width:0 0 2px 2px;}
+.bk.br{bottom:14px;right:14px;border-width:0 2px 2px 0;}
+
+/* logo mark */
+.mirror-logo{
+  font-family:'Orbitron',monospace;
+  font-size:10px;letter-spacing:5px;
+  color:rgba(255,255,255,.2);text-transform:uppercase;
+}
+
+.mirror-clock{
+  font-family:'Orbitron',monospace;
+  font-size:clamp(42px,11vw,78px);
+  font-weight:700;
+  line-height:1;
+  background:linear-gradient(180deg,#fff 0%,rgba(220,180,255,.75) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:6px;
+  text-align:center;
+  filter:drop-shadow(0 0 30px rgba(192,132,252,.4));
+}
+
+.mirror-date-row{
+  display:flex;align-items:center;gap:10px;
+  font-size:11px;color:var(--muted);letter-spacing:2px;font-weight:300;
+}
+.mirror-date-row::before,.mirror-date-row::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(192,132,252,.3));
+}
+.mirror-date-row::before{background:linear-gradient(90deg,rgba(192,132,252,.3),transparent);}
+
+.mirror-divider{
+  width:55%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--rose2),var(--lilac),transparent);
+  opacity:.5;
+}
+
+/* input section */
+.mirror-form{
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;width:76%;
+}
+.form-hint{
+  font-size:10px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.form-hint::before,.form-hint::after{content:'◈';font-size:8px;color:var(--rose2);opacity:.7;}
+
+.mirror-input{
+  width:100%;background:rgba(255,255,255,.05);
+  border:1px solid rgba(192,132,252,.35);
+  border-radius:14px;padding:13px 18px;
+  color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;
+  text-align:center;outline:none;
+  transition:all .3s;letter-spacing:1px;
+}
+.mirror-input:focus{
+  border-color:var(--rose);
+  box-shadow:0 0 0 3px rgba(255,61,139,.15),0 0 25px rgba(255,61,139,.2);
+  background:rgba(255,61,139,.04);
+}
+.mirror-input::placeholder{color:rgba(255,255,255,.2);}
+
+.mirror-enter{
+  width:100%;
+  background:var(--rg);
+  border:none;border-radius:14px;
+  padding:13px;color:#fff;
+  font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;
+  cursor:none;letter-spacing:.5px;
+  position:relative;overflow:hidden;
+  transition:transform .25s,box-shadow .25s;
+  box-shadow:0 4px 24px rgba(255,61,139,.3);
+}
+.mirror-enter::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.25),transparent);
+  opacity:0;transition:opacity .25s;
+}
+.mirror-enter:hover::after{opacity:1;}
+.mirror-enter:hover{transform:translateY(-3px);box-shadow:0 10px 35px rgba(255,61,139,.45);}
+.mirror-enter:active{transform:scale(.97);}
+
+.mirror-response{
+  font-size:13px;text-align:center;
+  padding:13px 16px;border-radius:14px;
+  line-height:1.9;width:90%;
+  animation:popUp .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes popUp{from{opacity:0;transform:scale(.88);}to{opacity:1;transform:scale(1);}}
+
+/* ══════════════════════════════════════════
+   PAGE 2 — ROOMS
+══════════════════════════════════════════ */
+#rooms-page{
+  background:linear-gradient(180deg,#0e0b1d 0%,#0c0a14 100%);
+}
+.rooms-top{
+  width:100%;max-width:580px;
+  padding:30px 18px 0;text-align:center;flex-shrink:0;
+}
+.rooms-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:10px;letter-spacing:4px;color:var(--rose2);
+  text-transform:uppercase;margin-bottom:8px;
+}
+.rooms-eyebrow .dot-row{display:flex;gap:4px;}
+.rooms-eyebrow .dot-row span{width:4px;height:4px;border-radius:50%;background:var(--rose2);opacity:.6;}
+.rooms-title{
+  font-size:clamp(22px,5.5vw,34px);font-weight:900;
+  background:linear-gradient(135deg,#fff 20%,var(--lilac));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:5px;line-height:1.2;
+}
+.rooms-sub{font-size:11px;color:var(--muted);letter-spacing:1.5px;margin-bottom:4px;}
+
+/* stat strip */
+.rooms-stats{
+  display:flex;justify-content:center;gap:20px;
+  padding:12px 18px;margin-top:10px;
+}
+.stat-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.stat-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--rose2);}
+.stat-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;}
+
+/* rooms grid */
+.rooms-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px;width:100%;max-width:580px;
+  padding:14px 14px 30px;
+}
+
+.room-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:22px;padding:20px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:none;position:relative;overflow:hidden;
+  backdrop-filter:blur(24px);
+  transition:transform .38s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .38s,border-color .25s;
+}
+/* shimmer overlay */
+.room-card::before{
+  content:'';position:absolute;inset:0;border-radius:22px;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,var(--ch,.12) 0%,transparent 70%);
+  opacity:0;transition:opacity .3s;
+}
 .room-card:hover::before{opacity:1;}
-.room-card:hover{transform:translateY(-6px) scale(1.02);border-color:var(--ca,var(--pink));box-shadow:0 20px 40px rgba(0,0,0,.5),0 0 26px var(--cg,rgba(255,45,120,.2));}
-.room-card:active{transform:scale(.97);}
-.room-emoji{font-size:32px;line-height:1;filter:drop-shadow(0 0 8px rgba(255,255,255,.3));}
-.room-name{font-size:14px;font-weight:700;text-align:center;}
-.room-hint{font-size:10px;color:var(--text-dim);text-align:center;}
-.room-card.kitchen{--cg:rgba(255,165,0,.2);--ca:#ffa500;}
-.room-card.bedroom{--cg:rgba(147,51,234,.25);--ca:#9333ea;}
-.room-card.farm{--cg:rgba(34,197,94,.2);--ca:#22c55e;}
-.room-card.garage{--cg:rgba(59,130,246,.2);--ca:#3b82f6;}
-.room-card.living{--cg:rgba(255,45,120,.2);--ca:#ff2d78;}
-.room-card.bathroom{--cg:rgba(0,245,212,.2);--ca:#00f5d4;}
-.room-card.door{--cg:rgba(251,191,36,.2);--ca:#fbbf24;}
+.room-card:hover{
+  transform:translateY(-8px) scale(1.03);
+  border-color:var(--ca,var(--rose));
+  box-shadow:0 22px 44px rgba(0,0,0,.55),0 0 32px var(--cs,rgba(255,61,139,.2));
+}
+.room-card:active{transform:scale(.96);}
 
-/* ── DETAIL ── */
-.detail-header{width:100%;max-width:600px;padding:26px 14px 0;display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.back-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:none;color:var(--text-dim);font-size:17px;transition:all .3s;flex-shrink:0;}
-.back-btn:hover{background:rgba(255,45,120,.15);border-color:var(--pink);color:var(--pink);}
-.detail-title-wrap{flex:1;}
-.detail-emoji{font-size:24px;}
-.detail-title{font-size:18px;font-weight:900;}
-.detail-subtitle{font-size:10px;color:var(--text-dim);letter-spacing:2px;}
-.detail-content{width:100%;max-width:600px;padding:16px 14px 40px;display:flex;flex-direction:column;gap:11px;}
+/* emoji badge */
+.room-emoji-wrap{
+  width:56px;height:56px;border-radius:18px;
+  background:var(--ceb,rgba(255,61,139,.12));
+  border:1px solid var(--ceb2,rgba(255,61,139,.2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;transition:transform .3s;
+}
+.room-card:hover .room-emoji-wrap{transform:scale(1.12) rotate(-3deg);}
+.room-name{font-size:14px;font-weight:700;text-align:center;letter-spacing:.3px;}
+.room-hint{font-size:10px;color:var(--muted);text-align:center;}
 
-/* ── WIDGETS ── */
-.widget{background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;padding:15px 17px;backdrop-filter:blur(20px);position:relative;overflow:hidden;animation:slideUp .4s ease both;}
-.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);}
-.widget:nth-child(1){animation-delay:.04s;}.widget:nth-child(2){animation-delay:.08s;}.widget:nth-child(3){animation-delay:.12s;}.widget:nth-child(4){animation-delay:.16s;}.widget:nth-child(5){animation-delay:.2s;}.widget:nth-child(6){animation-delay:.24s;}.widget:nth-child(7){animation-delay:.28s;}.widget:nth-child(8){animation-delay:.32s;}
-@keyframes slideUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
-.widget-label{font-size:10px;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:10px;}
-.widget-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.widget-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:700;color:var(--text);}
-.widget-val.pink{color:var(--pink);text-shadow:0 0 18px var(--pink-glow);}
-.widget-val.violet{color:var(--violet-soft);text-shadow:0 0 18px var(--violet-glow);}
-.widget-val.teal{color:var(--teal);text-shadow:0 0 18px var(--teal-glow);}
-.widget-val.green{color:#22c55e;text-shadow:0 0 18px rgba(34,197,94,.3);}
-.widget-val.orange{color:#ffa500;text-shadow:0 0 18px rgba(255,165,0,.3);}
-.widget-unit{font-size:12px;color:var(--text-dim);margin-top:3px;}
-.widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+/* live indicator on card */
+.room-live{
+  position:absolute;top:10px;right:10px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--mint);box-shadow:0 0 8px var(--mint);
+  animation:lv 2s infinite;
+}
+@keyframes lv{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-.toggle-wrap{display:flex;align-items:center;gap:12px;}
-.toggle-label{font-size:13px;font-weight:600;flex:1;}
-.toggle{width:52px;height:28px;background:rgba(255,255,255,.1);border-radius:14px;position:relative;cursor:none;transition:background .3s;flex-shrink:0;}
-.toggle.on{background:linear-gradient(135deg,var(--violet),var(--pink));}
-.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 2px 6px rgba(0,0,0,.4);}
-.toggle.on::after{transform:translateX(24px);}
+/* per-card colors */
+.c-kitchen{--ca:#ffa500;--ch:rgba(255,165,0,.15);--cs:rgba(255,165,0,.2);--ceb:rgba(255,165,0,.1);--ceb2:rgba(255,165,0,.2);}
+.c-bedroom{--ca:#c084fc;--ch:rgba(192,132,252,.15);--cs:rgba(192,132,252,.2);--ceb:rgba(192,132,252,.1);--ceb2:rgba(192,132,252,.2);}
+.c-farm   {--ca:#34d399;--ch:rgba(52,211,153,.13);--cs:rgba(52,211,153,.2);--ceb:rgba(52,211,153,.1);--ceb2:rgba(52,211,153,.2);}
+.c-garage {--ca:#38bdf8;--ch:rgba(56,189,248,.13);--cs:rgba(56,189,248,.2);--ceb:rgba(56,189,248,.1);--ceb2:rgba(56,189,248,.2);}
+.c-living {--ca:#ff79b0;--ch:rgba(255,121,176,.13);--cs:rgba(255,121,176,.2);--ceb:rgba(255,121,176,.1);--ceb2:rgba(255,121,176,.2);}
+.c-bath   {--ca:#00f5d4;--ch:rgba(0,245,212,.12);--cs:rgba(0,245,212,.2);--ceb:rgba(0,245,212,.1);--ceb2:rgba(0,245,212,.2);}
+.c-door   {--ca:#fbbf24;--ch:rgba(251,191,36,.13);--cs:rgba(251,191,36,.2);--ceb:rgba(251,191,36,.1);--ceb2:rgba(251,191,36,.2);}
 
-.slider-wrap{display:flex;flex-direction:column;gap:9px;}
-.slider-row{display:flex;align-items:center;gap:10px;}
-.slider{-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:none;}
-.slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--pink));cursor:none;box-shadow:0 0 10px var(--pink-glow);}
-.slider-val-display{font-family:'Orbitron',monospace;font-size:12px;color:var(--pink-soft);min-width:36px;text-align:left;}
+/* ══════════════════════════════════════════
+   PAGE 3 — DETAIL
+══════════════════════════════════════════ */
+#detail-page{
+  background:linear-gradient(180deg,#0e0b1d 0%,#0c0a14 100%);
+}
+.detail-hdr{
+  width:100%;max-width:580px;
+  padding:24px 14px 0;
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.back-pill{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;
+  padding:10px 16px;
+  cursor:none;color:var(--muted);font-size:13px;font-weight:700;
+  transition:all .3s;display:flex;align-items:center;gap:6px;
+  font-family:'Cairo',sans-serif;
+}
+.back-pill:hover{background:rgba(255,61,139,.12);border-color:var(--rose);color:var(--rose);}
+.back-pill:active{transform:scale(.96);}
 
-.progress-bar{height:7px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:7px;}
-.progress-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+.detail-title-area{flex:1;}
+.detail-room-emoji{font-size:28px;line-height:1;}
+.detail-room-name{font-size:20px;font-weight:900;letter-spacing:.5px;}
+.detail-room-en{font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:1px;}
 
-.alert-pill{display:flex;align-items:center;gap:10px;background:rgba(255,45,120,.1);border:1px solid rgba(255,45,120,.3);border-radius:10px;padding:11px 14px;font-size:12px;color:var(--pink-soft);}
-.alert-pill .dot{width:8px;height:8px;background:var(--pink);border-radius:50%;box-shadow:0 0 10px var(--pink);animation:pulse 1.5s infinite;flex-shrink:0;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
-.alert-good{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#4ade80;}
-.alert-good .dot{background:#22c55e;box-shadow:0 0 10px rgba(34,197,94,.6);}
+.detail-content{
+  width:100%;max-width:580px;
+  padding:16px 14px 44px;
+  display:flex;flex-direction:column;gap:10px;
+}
 
-.action-btn{width:100%;padding:12px;border:none;border-radius:13px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:none;transition:all .3s;position:relative;overflow:hidden;letter-spacing:.5px;}
-.action-btn.primary{background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff;}
-.action-btn.secondary{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--text-dim);}
-.action-btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.4);}
-.action-btn:active{transform:scale(.98);}
+/* ══════════════════════════════════════════
+   WIDGETS
+══════════════════════════════════════════ */
+.w{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:20px;padding:16px 18px;
+  backdrop-filter:blur(24px);
+  position:relative;overflow:hidden;
+  animation:wIn .42s cubic-bezier(.34,1.56,.64,1) both;
+}
+.w::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+}
+.w:nth-child(1){animation-delay:.04s}.w:nth-child(2){animation-delay:.08s}
+.w:nth-child(3){animation-delay:.12s}.w:nth-child(4){animation-delay:.16s}
+.w:nth-child(5){animation-delay:.20s}.w:nth-child(6){animation-delay:.24s}
+.w:nth-child(7){animation-delay:.28s}.w:nth-child(8){animation-delay:.32s}
+@keyframes wIn{from{opacity:0;transform:translateY(28px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
 
-.camera-view{width:100%;aspect-ratio:16/9;background:#050508;border-radius:12px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;}
-.camera-view::before{content:'LIVE';position:absolute;top:10px;right:10px;background:rgba(255,45,120,.9);color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;padding:3px 8px;border-radius:4px;animation:liveBlink 2s infinite;}
-@keyframes liveBlink{0%,49%{opacity:1;}50%,100%{opacity:.3;}}
-.camera-scan{width:76px;height:76px;border:2px solid var(--pink);border-radius:8px;position:relative;animation:camPulse 2s infinite;}
-.camera-scan::before,.camera-scan::after{content:'';position:absolute;width:15px;height:15px;border-color:var(--teal);border-style:solid;}
-.camera-scan::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
-.camera-scan::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
-@keyframes camPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,45,120,.4);}50%{box-shadow:0 0 0 14px rgba(255,45,120,0);}}
-.camera-label{font-size:11px;color:var(--text-dim);letter-spacing:2px;margin-top:10px;}
+.wlabel{
+  font-size:10px;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.wlabel::before{content:'';width:3px;height:10px;border-radius:2px;background:var(--rose);}
 
-.sound-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
-.sound-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:9px 5px;text-align:center;cursor:none;transition:all .3s;font-size:11px;color:var(--text-dim);}
-.sound-btn .s-icon{font-size:19px;display:block;margin-bottom:3px;}
-.sound-btn:hover,.sound-btn.active{border-color:var(--violet-soft);background:rgba(123,47,255,.15);color:var(--text);}
-.sound-btn.active{box-shadow:0 0 14px rgba(123,47,255,.3);}
+.wrow{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-.fridge-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);}
-.fridge-item:last-child{border-bottom:none;}
-.fridge-name{font-size:13px;font-weight:600;}
-.fridge-amount{font-size:11px;}
-.fridge-amount.low{color:var(--pink);}
-.fridge-amount.ok{color:#22c55e;}
-.fridge-amount.warn{color:#ffa500;}
+/* value displays */
+.vbig{
+  font-family:'Orbitron',monospace;font-size:30px;font-weight:700;
+  line-height:1;color:var(--text);
+}
+.vbig.rose  {color:var(--rose);  text-shadow:0 0 22px rgba(255,61,139,.4);}
+.vbig.lilac {color:var(--lilac); text-shadow:0 0 22px rgba(192,132,252,.4);}
+.vbig.mint  {color:var(--mint);  text-shadow:0 0 22px rgba(52,211,153,.4);}
+.vbig.gold  {color:var(--gold);  text-shadow:0 0 22px rgba(251,191,36,.4);}
+.vbig.sky   {color:var(--sky);   text-shadow:0 0 22px rgba(56,189,248,.4);}
+.vunit{font-size:11px;color:var(--muted);margin-top:4px;}
 
-.suggestion-item{display:flex;align-items:center;gap:11px;padding:10px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06);cursor:none;transition:all .3s;margin-bottom:7px;}
-.suggestion-item:last-child{margin-bottom:0;}
-.suggestion-item:hover{background:rgba(123,47,255,.1);border-color:rgba(123,47,255,.3);}
-.suggestion-icon{font-size:21px;}
-.suggestion-text{font-size:13px;font-weight:600;}
-.suggestion-sub{font-size:10px;color:var(--text-dim);}
+/* toggle */
+.tog{
+  width:52px;height:28px;border-radius:14px;
+  background:rgba(255,255,255,.1);
+  position:relative;cursor:none;
+  transition:background .3s;flex-shrink:0;
+}
+.tog.on{background:var(--rg);}
+.tog::after{
+  content:'';position:absolute;
+  width:22px;height:22px;border-radius:50%;
+  background:#fff;top:3px;left:3px;
+  transition:transform .32s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.tog.on::after{transform:translateX(24px);}
+.tog-label{font-size:13px;font-weight:600;flex:1;}
 
-.timer-display{font-family:'Orbitron',monospace;font-size:36px;font-weight:700;text-align:center;background:linear-gradient(135deg,#fff 0%,var(--pink-soft));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;padding:6px 0;}
+/* slider */
+.sl-wrap{display:flex;flex-direction:column;gap:8px;}
+.sl-row{display:flex;align-items:center;gap:10px;}
+.sl-name{font-size:11px;color:var(--muted);min-width:44px;}
+input[type=range]{
+  -webkit-appearance:none;flex:1;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.1);outline:none;cursor:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--rg);cursor:none;
+  box-shadow:0 0 12px rgba(255,61,139,.5);
+}
+.sl-val{
+  font-family:'Orbitron',monospace;font-size:12px;
+  color:var(--rose2);min-width:36px;text-align:left;
+}
+
+/* progress bar */
+.pbar{height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:8px;}
+.pfill{height:100%;border-radius:4px;transition:width 1.2s ease;}
+
+/* alert pill */
+.apill{
+  display:flex;align-items:center;gap:10px;
+  border-radius:12px;padding:11px 14px;font-size:12px;
+}
+.apill.warn{background:rgba(255,61,139,.1);border:1px solid rgba(255,61,139,.3);color:var(--rose2);}
+.apill.ok  {background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.28);color:#34d399;}
+.apill.info{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28);color:var(--gold);}
+.apill .blink{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0;
+  animation:bl 1.6s infinite;
+}
+.apill.warn .blink{background:var(--rose);box-shadow:0 0 10px var(--rose);}
+.apill.ok   .blink{background:var(--mint);box-shadow:0 0 10px var(--mint);}
+.apill.info .blink{background:var(--gold);box-shadow:0 0 10px var(--gold);}
+@keyframes bl{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.75);}}
+
+/* action buttons */
+.abtn{
+  width:100%;padding:13px;border:none;border-radius:14px;
+  font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;
+  cursor:none;transition:all .28s;letter-spacing:.4px;
+}
+.abtn.primary{background:var(--rg);color:#fff;box-shadow:0 4px 22px rgba(255,61,139,.28);}
+.abtn.ghost  {background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);}
+.abtn:hover{transform:translateY(-2px);filter:brightness(1.08);}
+.abtn:active{transform:scale(.97);}
+
+/* list rows */
+.lrow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.lrow:last-child{border-bottom:none;}
+.lrow-name{font-size:13px;font-weight:600;}
+.lrow-val{font-size:11px;}
+.lrow-val.low {color:var(--rose);}
+.lrow-val.ok  {color:var(--mint);}
+.lrow-val.mid {color:var(--gold);}
+
+/* meal suggestion */
+.meal-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px;background:rgba(255,255,255,.03);
+  border-radius:14px;border:1px solid rgba(255,255,255,.06);
+  cursor:none;transition:all .28s;margin-bottom:7px;
+}
+.meal-row:last-child{margin-bottom:0;}
+.meal-row:hover{background:rgba(192,132,252,.08);border-color:rgba(192,132,252,.25);}
+.meal-ico{font-size:22px;}
+.meal-name{font-size:13px;font-weight:600;}
+.meal-sub{font-size:10px;color:var(--muted);}
+
+/* timer display */
+.timer-dsp{
+  font-family:'Orbitron',monospace;font-size:38px;font-weight:700;
+  text-align:center;letter-spacing:5px;
+  background:linear-gradient(135deg,#fff,var(--rose2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  padding:6px 0;
+}
 .timer-btns{display:flex;gap:9px;margin-top:9px;}
 
-.quality-ring{width:76px;height:76px;position:relative;flex-shrink:0;}
-.quality-ring svg{transform:rotate(-90deg);}
-.quality-ring .ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--violet-soft);}
+/* sleep ring */
+.sleep-ring{width:80px;height:80px;position:relative;flex-shrink:0;}
+.sleep-ring svg{transform:rotate(-90deg);}
+.sleep-ring .rv{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--lilac);
+}
 
-.water-container{width:56px;height:56px;border:2px solid var(--teal);border-radius:10px;overflow:hidden;position:relative;flex-shrink:0;}
-.water-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(0,245,212,.6),rgba(0,245,212,.3));transition:height .5s ease;}
-.water-fill::before{content:'';position:absolute;top:-4px;left:-50%;width:200%;height:8px;background:rgba(0,245,212,.5);border-radius:50%;animation:wave 2s linear infinite;}
-@keyframes wave{0%{transform:translateX(0);}100%{transform:translateX(50%);}}
+/* water jar */
+.water-jar{
+  width:58px;height:58px;border:2px solid rgba(56,189,248,.5);
+  border-radius:12px;overflow:hidden;position:relative;flex-shrink:0;
+}
+.water-lvl{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,rgba(56,189,248,.7),rgba(56,189,248,.3));
+  transition:height .6s ease;
+}
+.water-lvl::before{
+  content:'';position:absolute;top:-5px;left:-50%;
+  width:200%;height:10px;background:rgba(56,189,248,.5);
+  border-radius:50%;animation:wv 2s linear infinite;
+}
+@keyframes wv{0%{transform:translateX(0);}100%{transform:translateX(50%);}}
 
-.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.status-dot.green{background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.6);}
-.status-dot.red{background:var(--pink);box-shadow:0 0 8px var(--pink-glow);animation:pulse 1.5s infinite;}
-.status-dot.orange{background:#ffa500;box-shadow:0 0 8px rgba(255,165,0,.5);}
+/* camera view */
+.cam-view{
+  width:100%;aspect-ratio:16/9;background:#070511;
+  border-radius:14px;overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+.cam-live{
+  position:absolute;top:10px;right:10px;
+  background:rgba(255,61,139,.9);color:#fff;
+  font-size:9px;font-weight:700;letter-spacing:2px;
+  padding:3px 9px;border-radius:5px;
+  animation:lv 2s infinite;
+}
+.cam-scan{
+  width:80px;height:80px;border:2px solid var(--rose);
+  border-radius:10px;position:relative;animation:cs 2.5s infinite;
+}
+.cam-scan::before,.cam-scan::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border-color:var(--mint);border-style:solid;
+}
+.cam-scan::before{top:-2px;left:-2px;border-width:3px 0 0 3px;}
+.cam-scan::after{bottom:-2px;right:-2px;border-width:0 3px 3px 0;}
+@keyframes cs{0%,100%{box-shadow:0 0 0 0 rgba(255,61,139,.4);}50%{box-shadow:0 0 0 18px rgba(255,61,139,0);}}
 
-.bar-chart{display:flex;align-items:flex-end;gap:6px;height:68px;padding-top:8px;}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
-.bar-fill{width:100%;border-radius:4px 4px 0 0;transition:height .6s ease;}
-.bar-day{font-size:9px;color:var(--text-dim);}
+/* sound selection buttons */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.sbtn{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:13px;padding:10px 6px;text-align:center;cursor:none;
+  transition:all .28s;font-size:10px;color:var(--muted);
+}
+.sbtn .sico{font-size:20px;display:block;margin-bottom:4px;}
+.sbtn:hover,.sbtn.on{
+  border-color:var(--lilac);background:rgba(192,132,252,.12);color:var(--text);
+  box-shadow:0 0 16px rgba(192,132,252,.2);
+}
 
+/* bar chart */
+.barchart{display:flex;align-items:flex-end;gap:6px;height:70px;padding-top:6px;}
+.bc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bc-bar{width:100%;border-radius:4px 4px 0 0;transition:height .7s ease;}
+.bc-day{font-size:9px;color:var(--muted);}
+
+/* status dot */
+.sdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sdot.ok   {background:var(--mint);  box-shadow:0 0 8px var(--mint);}
+.sdot.bad  {background:var(--rose);  box-shadow:0 0 8px var(--rose);animation:bl 1.5s infinite;}
+.sdot.warn {background:var(--gold);  box-shadow:0 0 8px var(--gold);}
+
+/* mood buttons */
+.mood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;}
+.mood-btn{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:9px 5px;text-align:center;cursor:none;
+  transition:all .28s;font-size:10px;color:var(--muted);
+}
+.mood-btn.on{border-color:var(--rose2);background:rgba(255,121,176,.12);color:var(--text);}
+
+/* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(123,47,255,.4);border-radius:2px;}
+::-webkit-scrollbar-thumb{background:rgba(192,132,252,.35);border-radius:2px;}
+
+/* ─── DECORATIVE PARTICLES ON ROOMS PAGE ─── */
+.sparkle{
+  position:absolute;width:4px;height:4px;border-radius:50%;
+  background:var(--rose2);pointer-events:none;
+  animation:sparkle calc(3s + var(--d,0s)) ease-in-out infinite var(--d2,0s);
+}
+@keyframes sparkle{0%,100%{opacity:0;transform:scale(0);}50%{opacity:.6;transform:scale(1);}}
 </style>
 </head>
 <body>
-<div id="cursor"></div>
-<div id="cursor-ring"></div>
-<div class="ambient"></div>
 
-<div id="sound-ind">
+<!-- CURSOR -->
+<div id="cur"></div>
+<div id="cur-trail"></div>
+
+<!-- AMBIENT -->
+<div class="blob blob-a"></div>
+<div class="blob blob-b"></div>
+<div class="blob blob-c"></div>
+
+<!-- STARFIELD -->
+<canvas id="starfield"></canvas>
+
+<!-- SOUND BADGE -->
+<div id="snd">
   <div class="sbars"><span></span><span></span><span></span><span></span><span></span></div>
-  <span id="sound-label">صوت تفاعلي</span>
+  <span id="snd-lbl">◈</span>
 </div>
 
-<!-- PAGE 1 -->
+<!-- ══ PAGE 1: MIRROR ══ -->
 <div class="page active" id="mirror-page">
-  <div class="mirror-frame">
-    <div class="mc tl"></div><div class="mc tr"></div>
-    <div class="mc bl"></div><div class="mc br"></div>
-    <div class="mirror-time" id="clockDisplay"></div>
-    <div class="mirror-date" id="dateDisplay"></div>
-    <div class="mirror-divider"></div>
-    <div class="mirror-input-wrap">
-      <div class="mirror-label">◈ تعرف على صاحبة المنزل ◈</div>
-      <input class="mirror-input" id="nameInput" type="text" placeholder="اكتب اسمك..." maxlength="20"/>
-      <button class="mirror-btn" onclick="handleName()">دخول المنزل الذكي</button>
-      <div class="mirror-msg" id="mirrorMsg" style="display:none"></div>
+  <div class="mirror-wrap">
+    <div class="mirror-body">
+      <div class="bk tl"></div><div class="bk tr"></div>
+      <div class="bk bl"></div><div class="bk br"></div>
+
+      <div class="mirror-logo">FUTURE MIRROR • AI HOME</div>
+
+      <div class="mirror-clock" id="clk"></div>
+      <div class="mirror-date-row"><span id="dt"></span></div>
+      <div class="mirror-divider"></div>
+
+      <div class="mirror-form">
+        <div class="form-hint">تعرف على صاحبة المنزل</div>
+        <input class="mirror-input" id="nameInput" type="text"
+               placeholder="اكتبي اسمك هنا..." maxlength="20"/>
+        <button class="mirror-enter" onclick="handleName()">
+          ✨ دخول المنزل الذكي
+        </button>
+        <div id="mirror-resp" style="display:none" class="mirror-response"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- PAGE 2 -->
+<!-- ══ PAGE 2: ROOMS ══ -->
 <div class="page" id="rooms-page">
-  <div class="rooms-header">
-    <div class="rooms-greeting">◈ منزلك الذكي ◈</div>
-    <div class="rooms-title" id="roomsTitle">مرحباً بك</div>
-    <div class="rooms-sub">اختاري المكان الذي تريدين التحكم به</div>
+  <div class="rooms-top">
+    <div class="rooms-eyebrow">
+      <div class="dot-row"><span></span><span></span><span></span></div>
+      بيتك الذكي
+      <div class="dot-row"><span></span><span></span><span></span></div>
+    </div>
+    <div class="rooms-title" id="rooms-title">مرحباً بك ✨</div>
+    <div class="rooms-sub">اضغطي على الغرفة لتتحكمي بها</div>
+    <div class="rooms-stats">
+      <div class="stat-item"><div class="stat-val" id="st-time"></div><div class="stat-lbl">الوقت</div></div>
+      <div class="stat-item"><div class="stat-val">7</div><div class="stat-lbl">غرف</div></div>
+      <div class="stat-item"><div class="stat-val" style="color:var(--mint)">مُتصل</div><div class="stat-lbl">الحالة</div></div>
+    </div>
   </div>
   <div class="rooms-grid">
-    <div class="room-card kitchen" onclick="openRoom('kitchen')"><div class="room-emoji">🍳</div><div class="room-name">المطبخ</div><div class="room-hint">طبخ · ثلاجة · فرن</div></div>
-    <div class="room-card bedroom" onclick="openRoom('bedroom')"><div class="room-emoji">🛏</div><div class="room-name">غرفة النوم</div><div class="room-hint">نوم · إضاءة · حرارة</div></div>
-    <div class="room-card farm" onclick="openRoom('farm')"><div class="room-emoji">🌱</div><div class="room-name">المزرعة الذكية</div><div class="room-hint">ري · أملاح · رطوبة</div></div>
-    <div class="room-card garage" onclick="openRoom('garage')"><div class="room-emoji">🚗</div><div class="room-name">الكراج</div><div class="room-hint">باب · شحن · حرارة</div></div>
-    <div class="room-card living" onclick="openRoom('living')"><div class="room-emoji">🛋</div><div class="room-name">غرفة المعيشة</div><div class="room-hint">إضاءة · تلفاز · هواء</div></div>
-    <div class="room-card bathroom" onclick="openRoom('bathroom')"><div class="room-emoji">🚿</div><div class="room-name">الحمام</div><div class="room-hint">حرارة · استهلاك · تسرب</div></div>
-    <div class="room-card door" style="grid-column:span 2" onclick="openRoom('door')"><div class="room-emoji">🚪</div><div class="room-name">عند الباب</div><div class="room-hint">كاميرا · تعرف · فتح ذكي</div></div>
+    <div class="room-card c-kitchen" onclick="openRoom('kitchen')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap">🍳</div>
+      <div class="room-name">المطبخ</div>
+      <div class="room-hint">طبخ · ثلاجة · فرن</div>
+    </div>
+    <div class="room-card c-bedroom" onclick="openRoom('bedroom')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap">🛏</div>
+      <div class="room-name">غرفة النوم</div>
+      <div class="room-hint">نوم · إضاءة · حرارة</div>
+    </div>
+    <div class="room-card c-farm" onclick="openRoom('farm')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap">🌱</div>
+      <div class="room-name">المزرعة الذكية</div>
+      <div class="room-hint">ري · أملاح · رطوبة</div>
+    </div>
+    <div class="room-card c-garage" onclick="openRoom('garage')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap">🚗</div>
+      <div class="room-name">الكراج</div>
+      <div class="room-hint">باب · شحن · حرارة</div>
+    </div>
+    <div class="room-card c-living" onclick="openRoom('living')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap">🛋</div>
+      <div class="room-name">غرفة المعيشة</div>
+      <div class="room-hint">إضاءة · تلفاز · هواء</div>
+    </div>
+    <div class="room-card c-bath" onclick="openRoom('bathroom')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap">🚿</div>
+      <div class="room-name">الحمام</div>
+      <div class="room-hint">حرارة · استهلاك · تسرب</div>
+    </div>
+    <div class="room-card c-door" style="grid-column:span 2" onclick="openRoom('door')">
+      <div class="room-live"></div>
+      <div class="room-emoji-wrap" style="width:64px;height:64px;font-size:32px;">🚪</div>
+      <div class="room-name">عند الباب الرئيسي</div>
+      <div class="room-hint">كاميرا · تعرف على الوجه · فتح ذكي</div>
+    </div>
   </div>
 </div>
 
-<!-- PAGE 3 -->
+<!-- ══ PAGE 3: DETAIL ══ -->
 <div class="page" id="detail-page">
-  <div class="detail-header">
-    <div class="back-btn" onclick="goBack()">←</div>
-    <div class="detail-title-wrap">
-      <div class="detail-emoji" id="detailEmoji"></div>
-      <div class="detail-title" id="detailTitle"></div>
-      <div class="detail-subtitle" id="detailSub"></div>
+  <div class="detail-hdr">
+    <button class="back-pill" onclick="goBack()">رجوع</button>
+    <div class="detail-title-area">
+      <div class="detail-room-emoji" id="d-emoji"></div>
+      <div class="detail-room-name"  id="d-name"></div>
+      <div class="detail-room-en"    id="d-en"></div>
     </div>
   </div>
-  <div class="detail-content" id="detailContent"></div>
+  <div class="detail-content" id="d-content"></div>
 </div>
 
 <script>
-/* ═══ AUDIO ENGINE ═══ */
+/* ══════════════ STARFIELD ══════════════ */
+(function(){
+  const c=document.getElementById('starfield');
+  const ctx=c.getContext('2d');
+  let stars=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight;init();}
+  function init(){
+    stars=[];
+    for(let i=0;i<120;i++){
+      stars.push({
+        x:Math.random()*c.width,y:Math.random()*c.height,
+        r:Math.random()*1.2+.2,
+        o:Math.random()*.6+.1,
+        sp:Math.random()*.004+.001,
+        t:Math.random()*Math.PI*2
+      });
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{
+      s.t+=s.sp;s.o=(.1+(.6*(Math.sin(s.t)+1)/2));
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,200,255,${s.o})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);
+  resize();draw();
+})();
+
+/* ══════════════ AUDIO ══════════════ */
 let AC=null;
-function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
-function beep(freq=440,type='sine',dur=0.12,vol=0.15,delay=0){
-  try{const ac=getAC();const o=ac.createOscillator();const g=ac.createGain();
-  o.connect(g);g.connect(ac.destination);o.type=type;
-  o.frequency.setValueAtTime(freq,ac.currentTime+delay);
-  g.gain.setValueAtTime(0,ac.currentTime+delay);
-  g.gain.linearRampToValueAtTime(vol,ac.currentTime+delay+0.01);
-  g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+delay+dur);
-  o.start(ac.currentTime+delay);o.stop(ac.currentTime+delay+dur+0.02);}catch(e){}
+function ac(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}
+function beep(f=440,t='sine',d=.12,v=.14,dl=0){
+  try{const a=ac();const o=a.createOscillator();const g=a.createGain();
+  o.connect(g);g.connect(a.destination);o.type=t;
+  o.frequency.setValueAtTime(f,a.currentTime+dl);
+  g.gain.setValueAtTime(0,a.currentTime+dl);
+  g.gain.linearRampToValueAtTime(v,a.currentTime+dl+.01);
+  g.gain.exponentialRampToValueAtTime(.001,a.currentTime+dl+d);
+  o.start(a.currentTime+dl);o.stop(a.currentTime+dl+d+.02);}catch(e){}
 }
-function chord(notes,base=0){notes.forEach(([f,d,v,t],i)=>beep(f,t||'sine',d,v||0.14,base+i*0.11));}
-
+function ch(ns,b=0){ns.forEach(([f,d,v,t],i)=>beep(f,t||'sine',d,v||.13,b+i*.11));}
 const SFX={
-  click:  ()=>beep(800,'square',0.07,0.1),
-  nav:    ()=>chord([[440,0.1,0.1],[660,0.12,0.12],[880,0.18,0.14]]),
-  back:   ()=>chord([[880,0.08,0.1],[660,0.1,0.1],[440,0.14,0.1]]),
-  welcome:()=>chord([[523,0.14,0.14],[659,0.14,0.14],[784,0.14,0.14],[1047,0.28,0.2]]),
-  owner:  ()=>chord([[784,0.13,0.18],[1047,0.13,0.18],[1319,0.13,0.18],[1047,0.12,0.15],[1319,0.35,0.24]]),
-  toggle: (on)=>beep(on?660:380,'triangle',0.1,0.14),
-  alert:  ()=>{beep(880,'square',0.08,0.18);beep(660,'square',0.08,0.14,0.1);},
-  success:()=>chord([[523,0.11,0.15],[784,0.11,0.15],[1047,0.24,0.2]]),
-  door:   ()=>chord([[330,0.09,0.17,'sawtooth'],[440,0.09,0.14,'sawtooth'],[550,0.2,0.12]]),
-  water:  ()=>{for(let i=0;i<5;i++)beep(280+Math.random()*220,'sine',0.09,0.07,i*0.08);},
-  slider: ()=>beep(380+Math.random()*280,'triangle',0.05,0.07),
-  ready:  ()=>chord([[440,0.1,0.12],[554,0.1,0.12],[659,0.1,0.12],[880,0.25,0.18]]),
+  click:  ()=>beep(800,'square',.07,.1),
+  nav:    ()=>ch([[440,.09,.09],[660,.11,.11],[880,.16,.13]]),
+  back:   ()=>ch([[880,.08,.09],[660,.1,.09],[440,.13,.1]]),
+  welcome:()=>ch([[523,.13,.13],[659,.13,.13],[784,.13,.13],[1047,.28,.19]]),
+  owner:  ()=>ch([[784,.12,.17],[1047,.12,.17],[1319,.12,.17],[1047,.11,.14],[1319,.32,.22]]),
+  toggle: (on)=>beep(on?660:380,'triangle',.1,.13),
+  alert:  ()=>{beep(880,'square',.07,.17);beep(660,'square',.07,.13,.1);},
+  success:()=>ch([[523,.11,.14],[784,.11,.14],[1047,.22,.19]]),
+  door:   ()=>ch([[330,.08,.16,'sawtooth'],[440,.08,.13,'sawtooth'],[550,.18,.11]]),
+  water:  ()=>{for(let i=0;i<5;i++)beep(280+Math.random()*220,'sine',.08,.07,i*.08);},
+  slide:  ()=>beep(380+Math.random()*280,'triangle',.05,.06),
+  ready:  ()=>ch([[440,.09,.11],[554,.09,.11],[659,.09,.11],[880,.24,.17]]),
 };
-
-let siTimer=null;
-function showSI(txt){
-  const el=document.getElementById('sound-ind');
-  document.getElementById('sound-label').textContent=txt;
-  el.classList.add('show');
-  clearTimeout(siTimer);
-  siTimer=setTimeout(()=>el.classList.remove('show'),1700);
+let siT=null;
+function si(txt){
+  const el=document.getElementById('snd');
+  document.getElementById('snd-lbl').textContent=txt;
+  el.classList.add('show');clearTimeout(siT);
+  siT=setTimeout(()=>el.classList.remove('show'),1900);
 }
 
-/* ═══ CURSOR ═══ */
-const cur=document.getElementById('cursor');
-const ring=document.getElementById('cursor-ring');
-let mx=window.innerWidth/2,my=window.innerHeight/2;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX;my=e.clientY;
-  cur.style.left=mx+'px';cur.style.top=my+'px';
-});
-setInterval(()=>{ring.style.left=mx+'px';ring.style.top=my+'px';},16);
-document.addEventListener('mousedown',()=>{cur.style.width='8px';cur.style.height='8px';ring.style.width='50px';ring.style.height='50px';});
-document.addEventListener('mouseup',()=>{cur.style.width='12px';cur.style.height='12px';ring.style.width='40px';ring.style.height='40px';});
+/* ══════════════ CURSOR ══════════════ */
+const cur=document.getElementById('cur');
+const trail=document.getElementById('cur-trail');
+let mx=innerWidth/2,my=innerHeight/2;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+setInterval(()=>{trail.style.left=mx+'px';trail.style.top=my+'px';},16);
+document.addEventListener('mousedown',()=>{cur.style.width='8px';cur.style.height='8px';});
+document.addEventListener('mouseup',()=>{cur.style.width='14px';cur.style.height='14px';});
 document.addEventListener('touchmove',e=>{const t=e.touches[0];mx=t.clientX;my=t.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';},{passive:true});
 
-/* ═══ CLOCK ═══ */
-function updateClock(){
+/* ══════════════ CLOCK ══════════════ */
+function tick(){
   const n=new Date();const p=v=>String(v).padStart(2,'0');
-  document.getElementById('clockDisplay').textContent=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+  document.getElementById('clk').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
   const days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  document.getElementById('dateDisplay').textContent=`${days[n.getDay()]} · ${n.getDate()} ${months[n.getMonth()]} ${n.getFullYear()}`;
+  const mons=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const ds=days[n.getDay()]+' · '+n.getDate()+' '+mons[n.getMonth()]+' '+n.getFullYear();
+  document.getElementById('dt').textContent=ds;
+  // rooms stat
+  const stEl=document.getElementById('st-time');
+  if(stEl)stEl.textContent=p(n.getHours())+':'+p(n.getMinutes());
 }
-updateClock();setInterval(updateClock,1000);
+tick();setInterval(tick,1000);
 
-/* ═══ NAV ═══ */
+/* ══════════════ NAV ══════════════ */
 let userName='';
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active');p.scrollTop=0;});
   document.getElementById(id).classList.add('active');
 }
+
 function handleName(){
   const val=document.getElementById('nameInput').value.trim();
   if(!val){SFX.alert();return;}
   userName=val;
-  const msg=document.getElementById('mirrorMsg');
-  msg.style.display='block';
+  const resp=document.getElementById('mirror-resp');
+  resp.style.display='block';
   if(val==='المها'){
-    msg.innerHTML='✅ تم التعرف على صاحبة المنزل بنجاح<br>أهلاً بعودتك يا المها 👩🏻‍🦱';
-    msg.style.cssText='display:block;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);color:#4ade80;padding:12px 16px;border-radius:10px;text-align:center;font-size:13px;line-height:1.9;width:90%;animation:fadeUp .5s ease;';
-    SFX.owner();showSI('مرحباً يا المها 💖');
+    resp.innerHTML='<span style="font-size:18px">💖</span><br>تم التعرف على صاحبة المنزل بنجاح<br><strong>أهلاً بعودتك يا المها 👩🏻‍🦱</strong>';
+    resp.style.cssText='display:block;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35);color:#34d399;padding:14px 18px;border-radius:14px;text-align:center;font-size:13px;line-height:2;width:90%;animation:popUp .5s cubic-bezier(.34,1.56,.64,1);';
+    SFX.owner();si('أهلاً بعودتك يا المها 💖');
   }else{
-    msg.innerHTML='✨ أنتِ ضيفة، أهلاً وسهلاً بكِ<br><span style="opacity:.7;font-size:11px">'+val+'</span>';
-    msg.style.cssText='display:block;border:1px solid rgba(123,47,255,.4);background:rgba(123,47,255,.08);color:#c4b5fd;padding:12px 16px;border-radius:10px;text-align:center;font-size:13px;line-height:1.9;width:90%;animation:fadeUp .5s ease;';
-    SFX.welcome();showSI('أهلاً وسهلاً ✨');
+    resp.innerHTML='<span style="font-size:18px">✨</span><br>أنتِ ضيفة كريمة<br><strong>أهلاً وسهلاً بكِ يا '+val+'</strong>';
+    resp.style.cssText='display:block;background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.3);color:#e9d5ff;padding:14px 18px;border-radius:14px;text-align:center;font-size:13px;line-height:2;width:90%;animation:popUp .5s cubic-bezier(.34,1.56,.64,1);';
+    SFX.welcome();si('أهلاً وسهلاً ✨');
   }
   setTimeout(()=>{
-    document.getElementById('roomsTitle').textContent=val==='المها'?'أهلاً يا المها 👩🏻‍🦱':'أهلاً بكِ يا '+val+' ✨';
+    const t=val==='المها'?'أهلاً يا المها، بيتك يستقبلك 💖':'أهلاً وسهلاً يا '+val+' ✨';
+    document.getElementById('rooms-title').textContent=t;
     SFX.nav();showPage('rooms-page');
-  },1900);
+  },2000);
 }
 document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')handleName();});
 
 function openRoom(key){
-  SFX.nav();showSI('دخول '+rooms[key].title);
-  const r=rooms[key];
-  document.getElementById('detailEmoji').textContent=r.emoji;
-  document.getElementById('detailTitle').textContent=r.title;
-  document.getElementById('detailSub').textContent=r.sub;
-  document.getElementById('detailContent').innerHTML=r.render();
+  const r=rooms[key];SFX.nav();si('دخول — '+r.name);
+  document.getElementById('d-emoji').textContent=r.emoji;
+  document.getElementById('d-name').textContent=r.name;
+  document.getElementById('d-en').textContent=r.en;
+  document.getElementById('d-content').innerHTML=r.html();
   showPage('detail-page');
   if(key==='kitchen'){window.kSec=0;window.kInt=null;}
 }
-function goBack(){SFX.back();showSI('رجوع');showPage('rooms-page');}
+function goBack(){SFX.back();si('رجوع للرئيسية');showPage('rooms-page');}
 
-/* ═══ HELPERS ═══ */
-function toggleSound(el){
-  el.closest('.sound-grid').querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');SFX.click();
-  showSI('🎵 '+el.textContent.replace(/\s+/g,' ').trim());
+/* ══════════════ HELPERS ══════════════ */
+function togSfx(id,onMsg,offMsg){
+  const t=document.getElementById(id);if(!t)return;
+  t.classList.toggle('on');const on=t.classList.contains('on');
+  SFX.toggle(on);si(on?onMsg:offMsg);
 }
-function toggleMood(el){
-  el.closest('div').querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');SFX.click();
-}
-function adjustTemp(id,d){
+function adj(id,d){
   const el=document.getElementById(id);if(!el)return;
-  el.textContent=parseInt(el.textContent)+d;
-  SFX.click();showSI('🌡 '+el.textContent+'°');
+  el.textContent=parseInt(el.textContent)+d;SFX.click();si('🌡 '+el.textContent+'°');
 }
-function toggleEl(togId,onCb,offCb){
-  const t=document.getElementById(togId);t.classList.toggle('on');
-  const on=t.classList.contains('on');SFX.toggle(on);
-  on?onCb():offCb();
+function pickSound(el){
+  el.closest('.sgrid').querySelectorAll('.sbtn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');SFX.click();si('🎵 '+el.textContent.trim());
+}
+function pickMood(el){
+  el.closest('.mood-grid').querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');SFX.click();si('💡 '+el.textContent.trim());
 }
 function toggleGarage(){
-  const t=document.getElementById('garageToggle');t.classList.toggle('on');
-  const open=!t.classList.contains('on');
-  document.getElementById('garageDot').className='status-dot '+(open?'red':'green');
-  document.getElementById('garageStatus').textContent=open?'مفتوح ⚠':'مغلق ✓';
-  SFX.toggle(!open);showSI(open?'🚪 الباب مفتوح':'🔒 الباب مغلق');
+  const t=document.getElementById('gTog');if(!t)return;
+  t.classList.toggle('on');const open=!t.classList.contains('on');
+  const dot=document.getElementById('gDot'),stat=document.getElementById('gStat');
+  if(dot)dot.className='sdot '+(open?'bad':'ok');
+  if(stat)stat.textContent=open?'مفتوح ⚠':'مغلق ✓';
+  SFX.toggle(!open);si(open?'🚪 الباب مفتوح':'🔒 الباب مغلق');
 }
-function toggleWindow(){
-  const t=document.getElementById('windowToggle');t.classList.toggle('on');
-  const on=t.classList.contains('on');
-  document.getElementById('windowStatus').textContent=on?'مفتوحة':'مغلقة';
-  SFX.toggle(on);showSI(on?'🪟 النافذة مفتوحة':'🪟 النافذة مغلقة');
+function toggleWin(){
+  const t=document.getElementById('winTog');if(!t)return;
+  t.classList.toggle('on');const on=t.classList.contains('on');
+  const s=document.getElementById('winStat');if(s)s.textContent=on?'مفتوحة':'مغلقة';
+  SFX.toggle(on);si(on?'🪟 النافذة مفتوحة':'🪟 النافذة مغلقة');
 }
 function toggleTV(){
-  const t=document.getElementById('tvToggle');t.classList.toggle('on');
-  const on=t.classList.contains('on');
-  document.getElementById('tvDot').className='status-dot '+(on?'red':'green');
-  document.getElementById('tvStatus').textContent=on?'مشغّل — Netflix':'متوقف';
-  SFX.toggle(on);showSI(on?'📺 التلفاز شغال':'📺 التلفاز متوقف');
-}
-function toggleAlarm(){
-  const t=document.getElementById('alarmToggle');t.classList.toggle('on');
-  const on=t.classList.contains('on');SFX.toggle(on);showSI(on?'⏰ المنبه مفعّل':'⏰ المنبه متوقف');
+  const t=document.getElementById('tvTog');if(!t)return;
+  t.classList.toggle('on');const on=t.classList.contains('on');
+  const d=document.getElementById('tvDot'),s=document.getElementById('tvStat');
+  if(d)d.className='sdot '+(on?'bad':'ok');
+  if(s)s.textContent=on?'مشغّل — Netflix':'متوقف';
+  SFX.toggle(on);si(on?'📺 التلفاز شغال':'📺 التلفاز متوقف');
 }
 function openDoor(btn){
-  SFX.door();showSI('🔓 جارٍ فتح الباب...');
-  btn.textContent='✅ تم الفتح!';btn.style.background='linear-gradient(135deg,#22c55e,#4ade80)';
-  setTimeout(()=>{SFX.success();btn.textContent='🔓 فتح الباب';btn.style.background='';},3000);
+  SFX.door();si('🔓 جارٍ فتح الباب...');
+  btn.textContent='✅ تم الفتح!';
+  btn.style.background='linear-gradient(135deg,#22c55e,#4ade80)';
+  setTimeout(()=>{SFX.success();btn.textContent='🔓 فتح الباب';btn.style.background='';},3200);
 }
-function startIrrigation(btn){
-  SFX.water();showSI('💧 جارٍ الري...');btn.textContent='💧 جارٍ الري...';
-  setTimeout(()=>{SFX.success();btn.textContent='✅ اكتمل الري!';showSI('✅ اكتمل الري');},3000);
+function doIrrigation(btn){
+  SFX.water();si('💧 جارٍ الري...');btn.textContent='💧 جارٍ الري...';
+  setTimeout(()=>{SFX.success();btn.textContent='✅ اكتمل الري!';si('✅ اكتمل الري');},3000);
 }
-function playSlider(){SFX.slider();}
 
-function startKitchenTimer(){
-  const btn=document.getElementById('kStartBtn');if(!btn)return;
+function startTimer(){
+  const btn=document.getElementById('kBtn');if(!btn)return;
   if(window.kInt){clearInterval(window.kInt);window.kInt=null;btn.textContent='▶ ابدأ';SFX.click();return;}
-  SFX.click();btn.textContent='⏸ إيقاف مؤقت';
+  SFX.click();btn.textContent='⏸ إيقاف';
   window.kInt=setInterval(()=>{
     window.kSec++;
-    const el=document.getElementById('kitchenTimer');if(!el){clearInterval(window.kInt);window.kInt=null;return;}
+    const el=document.getElementById('kTimer');if(!el){clearInterval(window.kInt);window.kInt=null;return;}
     const h=String(Math.floor(window.kSec/3600)).padStart(2,'0');
     const m=String(Math.floor(window.kSec%3600/60)).padStart(2,'0');
     const s=String(window.kSec%60).padStart(2,'0');
     el.textContent=h+':'+m+':'+s;
-    if(window.kSec===60||window.kSec===300||window.kSec===600)SFX.alert();
+    if([60,300,600].includes(window.kSec))SFX.alert();
   },1000);
 }
-function resetKitchenTimer(){
+function resetTimer(){
   if(window.kInt){clearInterval(window.kInt);window.kInt=null;}
   window.kSec=0;
-  const el=document.getElementById('kitchenTimer');if(el)el.textContent='00:00:00';
-  const btn=document.getElementById('kStartBtn');if(btn)btn.textContent='▶ ابدأ';
+  const el=document.getElementById('kTimer');if(el)el.textContent='00:00:00';
+  const btn=document.getElementById('kBtn');if(btn)btn.textContent='▶ ابدأ';
   SFX.click();
 }
 
-/* ═══ ROOMS ═══ */
+/* ══════════════ ROOM TEMPLATES ══════════════ */
 const rooms={
-kitchen:{emoji:'🍳',title:'المطبخ',sub:'KITCHEN CONTROL',render:()=>`
-  <div class="widget">
-    <div class="widget-label">⏱ مؤقت الطبخ</div>
-    <div class="timer-display" id="kitchenTimer">00:00:00</div>
-    <div class="timer-btns">
-      <button class="action-btn primary" id="kStartBtn" onclick="startKitchenTimer()">▶ ابدأ</button>
-      <button class="action-btn secondary" onclick="resetKitchenTimer()">↺ إعادة</button>
+kitchen:{emoji:'🍳',name:'المطبخ',en:'KITCHEN CONTROL',html:()=>`
+<div class="w">
+  <div class="wlabel">⏱ مؤقت الطبخ</div>
+  <div class="timer-dsp" id="kTimer">00:00:00</div>
+  <div class="timer-btns">
+    <button class="abtn primary" id="kBtn" onclick="startTimer()">▶ ابدأ</button>
+    <button class="abtn ghost" onclick="resetTimer()">↺ إعادة</button>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">❄️ محتويات الثلاجة</div>
+  <div class="lrow"><span class="lrow-name">🥛 حليب</span><span class="lrow-val low">⚠ انتهى</span></div>
+  <div class="lrow"><span class="lrow-name">🥚 بيض</span><span class="lrow-val low">⚠ متبقي 2</span></div>
+  <div class="lrow"><span class="lrow-name">🧀 جبن</span><span class="lrow-val ok">✓ متوفر</span></div>
+  <div class="lrow"><span class="lrow-name">🧈 زبدة</span><span class="lrow-val ok">✓ متوفر</span></div>
+  <div class="lrow"><span class="lrow-name">🍗 دجاج</span><span class="lrow-val mid">⚠ قليل</span></div>
+</div>
+<div class="apill warn"><div class="blink"></div>الحليب انتهى · البيض متبقي 2 حبات</div>
+<div class="w">
+  <div class="wlabel">🔥 درجة حرارة الفرن</div>
+  <div class="wrow">
+    <div><div class="vbig gold" id="ovenT">180</div><div class="vunit">درجة مئوية</div></div>
+    <div style="flex:1;margin-right:16px">
+      <input type="range" min="50" max="300" value="180"
+        oninput="document.getElementById('ovenT').textContent=this.value;SFX.slide()"/>
     </div>
   </div>
-  <div class="widget">
-    <div class="widget-label">❄ محتويات الثلاجة</div>
-    <div class="fridge-item"><span class="fridge-name">🥛 حليب</span><span class="fridge-amount low">⚠ انتهى</span></div>
-    <div class="fridge-item"><span class="fridge-name">🥚 بيض</span><span class="fridge-amount low">⚠ متبقي 2</span></div>
-    <div class="fridge-item"><span class="fridge-name">🧀 جبن</span><span class="fridge-amount ok">✓ متوفر</span></div>
-    <div class="fridge-item"><span class="fridge-name">🧈 زبدة</span><span class="fridge-amount ok">✓ متوفر</span></div>
-    <div class="fridge-item"><span class="fridge-name">🍗 دجاج</span><span class="fridge-amount warn">⚠ قليل</span></div>
-  </div>
-  <div class="alert-pill"><div class="dot"></div>الحليب انتهى · البيض متبقي 2</div>
-  <div class="widget">
-    <div class="widget-label">🔥 درجة حرارة الفرن</div>
-    <div class="widget-row">
-      <div><div class="widget-val orange" id="ovenTemp">180</div><div class="widget-unit">درجة مئوية</div></div>
-      <div style="flex:1;margin-right:16px"><input type="range" class="slider" min="50" max="300" value="180" oninput="document.getElementById('ovenTemp').textContent=this.value;playSlider()"/></div>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">🍽 اقتراح وجبات اليوم</div>
-    <div class="suggestion-item"><div class="suggestion-icon">🍳</div><div><div class="suggestion-text">بيض مقلي مع جبن</div><div class="suggestion-sub">فطور · 15 دقيقة</div></div></div>
-    <div class="suggestion-item"><div class="suggestion-icon">🍗</div><div><div class="suggestion-text">صدر دجاج مشوي</div><div class="suggestion-sub">غداء · 40 دقيقة</div></div></div>
-    <div class="suggestion-item"><div class="suggestion-icon">🥗</div><div><div class="suggestion-text">سلطة خضراء</div><div class="suggestion-sub">عشاء · 10 دقائق</div></div></div>
-  </div>`},
+</div>
+<div class="w">
+  <div class="wlabel">🍽 اقتراح وجبات اليوم</div>
+  <div class="meal-row"><div class="meal-ico">🍳</div><div><div class="meal-name">بيض مقلي بالجبن</div><div class="meal-sub">فطور · 15 دقيقة</div></div></div>
+  <div class="meal-row"><div class="meal-ico">🍗</div><div><div class="meal-name">صدر دجاج مشوي</div><div class="meal-sub">غداء · 40 دقيقة</div></div></div>
+  <div class="meal-row"><div class="meal-ico">🥗</div><div><div class="meal-name">سلطة خضراء طازجة</div><div class="meal-sub">عشاء · 10 دقائق</div></div></div>
+</div>`},
 
-bedroom:{emoji:'🛏',title:'غرفة النوم',sub:'BEDROOM CONTROL',render:()=>`
-  <div class="widget">
-    <div class="widget-label">⏰ المنبه</div>
-    <div class="widget-row">
-      <div><div class="widget-val violet">06:30</div><div class="widget-unit">صباحاً</div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-        <div class="toggle on" id="alarmToggle" onclick="toggleAlarm()"></div>
-        <div style="font-size:10px;color:var(--text-dim)">تفعيل</div>
+bedroom:{emoji:'🛏',name:'غرفة النوم',en:'BEDROOM CONTROL',html:()=>`
+<div class="w">
+  <div class="wlabel">⏰ المنبه</div>
+  <div class="wrow">
+    <div><div class="vbig lilac">06:30</div><div class="vunit">صباحاً</div></div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+      <div class="tog on" id="almTog" onclick="togSfx('almTog','⏰ المنبه مفعّل','⏰ المنبه متوقف')"></div>
+      <span style="font-size:10px;color:var(--muted)">تفعيل</span>
+    </div>
+  </div>
+</div>
+<div class="wgrid">
+  <div class="w"><div class="wlabel">💤 مؤقت النوم</div><div class="vbig rose" style="font-size:22px">08:00</div><div class="vunit">ساعات</div></div>
+  <div class="w" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+    <div class="wlabel" style="margin-bottom:6px">جودة النوم</div>
+    <div class="sleep-ring">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/>
+        <circle cx="40" cy="40" r="32" fill="none" stroke="url(#slg)" stroke-width="6"
+                stroke-linecap="round" stroke-dasharray="201" stroke-dashoffset="50"/>
+        <defs><linearGradient id="slg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#ff3d8b"/>
+          <stop offset="100%" stop-color="#c084fc"/>
+        </linearGradient></defs>
+      </svg>
+      <div class="rv">75%</div>
+    </div>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">💡 الإضاءة</div>
+  <div class="sl-wrap">
+    <div class="sl-row"><span class="sl-name">السطوع</span><input type="range" min="0" max="100" value="60" oninput="document.getElementById('bv').textContent=this.value+'%';SFX.slide()"/><span class="sl-val" id="bv">60%</span></div>
+    <div class="sl-row"><span class="sl-name">الدفء</span><input type="range" min="0" max="100" value="70" oninput="document.getElementById('wv').textContent=this.value+'%';SFX.slide()"/><span class="sl-val" id="wv">70%</span></div>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">🌡 درجة حرارة الغرفة</div>
+  <div class="wrow">
+    <div><div class="vbig sky" id="rTemp">22</div><div class="vunit">مئوية</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="abtn ghost" style="width:40px;height:40px;padding:0;font-size:18px" onclick="adj('rTemp',-1)">−</button>
+      <button class="abtn primary" style="width:40px;height:40px;padding:0;font-size:18px" onclick="adj('rTemp',1)">+</button>
+    </div>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">🎵 أصوات هادئة للنوم</div>
+  <div class="sgrid">
+    <div class="sbtn on" onclick="pickSound(this)"><span class="sico">🌊</span>أمواج</div>
+    <div class="sbtn" onclick="pickSound(this)"><span class="sico">🌧</span>مطر</div>
+    <div class="sbtn" onclick="pickSound(this)"><span class="sico">🌿</span>غابة</div>
+    <div class="sbtn" onclick="pickSound(this)"><span class="sico">🔥</span>مدفأة</div>
+    <div class="sbtn" onclick="pickSound(this)"><span class="sico">🌬</span>ريح</div>
+    <div class="sbtn" onclick="pickSound(this)"><span class="sico">⚡</span>عاصفة</div>
+  </div>
+</div>`},
+
+farm:{emoji:'🌱',name:'المزرعة الذكية',en:'SMART FARM',html:()=>`
+<div class="apill warn"><div class="blink"></div>النبات يحتاج ري — نسبة الماء منخفضة جداً</div>
+<div class="wgrid">
+  <div class="w" style="display:flex;flex-direction:column;align-items:center;gap:9px">
+    <div class="wlabel">💧 نسبة الماء</div>
+    <div class="water-jar"><div class="water-lvl" style="height:35%"></div></div>
+    <div class="vbig rose" style="font-size:22px">35%</div>
+  </div>
+  <div class="w">
+    <div class="wlabel">🧪 الأملاح</div>
+    <div class="vbig sky">1.8</div><div class="vunit">EC mS/cm</div>
+    <div class="pbar"><div class="pfill" style="width:60%;background:linear-gradient(90deg,var(--sky),var(--lilac))"></div></div>
+  </div>
+</div>
+<div class="wgrid">
+  <div class="w"><div class="wlabel">🌡 الحرارة</div><div class="vbig gold">26°</div><div class="vunit">مثالية للنمو</div></div>
+  <div class="w"><div class="wlabel">💨 الرطوبة</div><div class="vbig lilac">68%</div><div class="vunit">جيدة</div></div>
+</div>
+<div class="w">
+  <div class="wlabel">🌿 حالة النباتات</div>
+  <div class="lrow"><span class="lrow-name">🍅 طماطم</span><span class="lrow-val low">⚠ تحتاج ري</span></div>
+  <div class="lrow"><span class="lrow-name">🥬 خس</span><span class="lrow-val ok">✓ بصحة جيدة</span></div>
+  <div class="lrow"><span class="lrow-name">🌿 نعناع</span><span class="lrow-val ok">✓ ينمو بسرعة</span></div>
+  <div class="lrow"><span class="lrow-name">🫑 فلفل</span><span class="lrow-val mid">⚠ يحتاج أملاح</span></div>
+</div>
+<button class="abtn primary" onclick="doIrrigation(this)">💧 بدء الري التلقائي</button>`},
+
+garage:{emoji:'🚗',name:'الكراج',en:'GARAGE CONTROL',html:()=>`
+<div class="w">
+  <div class="wlabel">🚪 باب الكراج</div>
+  <div class="wrow">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="sdot ok" id="gDot"></div>
+      <span class="tog-label" id="gStat">مغلق ✓</span>
+    </div>
+    <div class="tog on" id="gTog" onclick="toggleGarage()"></div>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">🔋 شحن السيارة الكهربائية</div>
+  <div class="wrow">
+    <div><div class="vbig mint">82%</div><div class="vunit">يُقدَّر 420 كم</div></div>
+    <div style="flex:1;margin-right:14px">
+      <div class="pbar"><div class="pfill" style="width:82%;background:linear-gradient(90deg,#22c55e,#00f5d4)"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:5px;text-align:left">اكتمال خلال 1.5 ساعة</div>
+    </div>
+  </div>
+</div>
+<div class="wgrid">
+  <div class="w"><div class="wlabel">🌡 حرارة المحرك</div><div class="vbig sky">24°</div><div class="vunit">طبيعية ✓</div></div>
+  <div class="w"><div class="wlabel">🌡 حرارة الكراج</div><div class="vbig gold">32°</div><div class="vunit">مئوية</div></div>
+</div>
+<div class="apill ok"><div class="blink"></div>السيارة في وضع ممتاز — لا مشاكل مكتشفة</div>`},
+
+living:{emoji:'🛋',name:'غرفة المعيشة',en:'LIVING ROOM',html:()=>`
+<div class="w">
+  <div class="wlabel">💡 الإضاءة</div>
+  <div class="sl-wrap">
+    <div class="sl-row"><span class="sl-name">السطوع</span><input type="range" min="0" max="100" value="80" oninput="document.getElementById('lbv').textContent=this.value+'%';SFX.slide()"/><span class="sl-val" id="lbv">80%</span></div>
+  </div>
+  <div class="mood-grid">
+    <div class="mood-btn on" onclick="pickMood(this)">🌅<br>دافئ</div>
+    <div class="mood-btn" onclick="pickMood(this)">❄️<br>بارد</div>
+    <div class="mood-btn" onclick="pickMood(this)">🌸<br>وردي</div>
+    <div class="mood-btn" onclick="pickMood(this)">🎉<br>حفلة</div>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">🪟 النافذة الذكية</div>
+  <div class="wrow">
+    <div style="display:flex;align-items:center;gap:10px"><div class="sdot ok"></div><span class="tog-label" id="winStat">مفتوحة</span></div>
+    <div class="tog on" id="winTog" onclick="toggleWin()"></div>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">📺 التلفاز</div>
+  <div class="wrow">
+    <div style="display:flex;align-items:center;gap:10px"><div class="sdot bad" id="tvDot"></div><span class="tog-label" id="tvStat">مشغّل — Netflix</span></div>
+    <div class="tog on" id="tvTog" onclick="toggleTV()"></div>
+  </div>
+  <div class="sl-row" style="margin-top:12px">
+    <span class="sl-name">🔊 صوت</span>
+    <input type="range" min="0" max="100" value="45" oninput="document.getElementById('tvV').textContent=this.value;SFX.slide()"/>
+    <span class="sl-val" id="tvV">45</span>
+  </div>
+</div>
+<div class="w">
+  <div class="wlabel">🌬 جودة الهواء</div>
+  <div class="wrow">
+    <div><div class="vbig mint">AQI 28</div><div class="vunit">ممتازة 🌿</div></div>
+    <div style="flex:1;margin-right:14px">
+      <div class="pbar"><div class="pfill" style="width:28%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px">
+        <span style="font-size:9px;color:var(--mint)">ممتاز</span>
+        <span style="font-size:9px;color:var(--muted)">خطر</span>
       </div>
     </div>
   </div>
-  <div class="widget-grid">
-    <div class="widget"><div class="widget-label">💤 مؤقت النوم</div><div class="widget-val pink" style="font-size:22px">08:00</div><div class="widget-unit">ساعات</div></div>
-    <div class="widget" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
-      <div class="widget-label">جودة النوم</div>
-      <div class="quality-ring">
-        <svg width="76" height="76" viewBox="0 0 76 76">
-          <circle cx="38" cy="38" r="30" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/>
-          <circle cx="38" cy="38" r="30" fill="none" stroke="url(#sg)" stroke-width="6" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="47"/>
-          <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#7b2fff"/><stop offset="100%" stop-color="#ff2d78"/></linearGradient></defs>
-        </svg>
-        <div class="ring-val">75%</div>
-      </div>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">💡 الإضاءة</div>
-    <div class="slider-wrap">
-      <div class="slider-row"><span style="font-size:11px;color:var(--text-dim)">السطوع</span><input type="range" class="slider" min="0" max="100" value="60" oninput="document.getElementById('bv').textContent=this.value+'%';playSlider()"/><span class="slider-val-display" id="bv">60%</span></div>
-      <div class="slider-row"><span style="font-size:11px;color:var(--text-dim)">الدفء</span><input type="range" class="slider" min="0" max="100" value="70" oninput="document.getElementById('wv').textContent=this.value+'%';playSlider()"/><span class="slider-val-display" id="wv">70%</span></div>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">🌡 درجة الحرارة</div>
-    <div class="widget-row">
-      <div><div class="widget-val teal" id="roomTemp">22</div><div class="widget-unit">مئوية</div></div>
-      <div style="display:flex;gap:8px">
-        <button class="action-btn secondary" style="width:40px;height:40px;padding:0;font-size:17px" onclick="adjustTemp('roomTemp',-1)">−</button>
-        <button class="action-btn primary"   style="width:40px;height:40px;padding:0;font-size:17px" onclick="adjustTemp('roomTemp',1)">+</button>
-      </div>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">🎵 أصوات هادئة</div>
-    <div class="sound-grid">
-      <div class="sound-btn active" onclick="toggleSound(this)"><span class="s-icon">🌊</span>أمواج</div>
-      <div class="sound-btn" onclick="toggleSound(this)"><span class="s-icon">🌧</span>مطر</div>
-      <div class="sound-btn" onclick="toggleSound(this)"><span class="s-icon">🌿</span>غابة</div>
-      <div class="sound-btn" onclick="toggleSound(this)"><span class="s-icon">🔥</span>مدفأة</div>
-      <div class="sound-btn" onclick="toggleSound(this)"><span class="s-icon">🌬</span>ريح</div>
-      <div class="sound-btn" onclick="toggleSound(this)"><span class="s-icon">⚡</span>عاصفة</div>
-    </div>
-  </div>`},
+</div>`},
 
-farm:{emoji:'🌱',title:'المزرعة الذكية',sub:'SMART FARM',render:()=>`
-  <div class="alert-pill"><div class="dot"></div>النبات يحتاج ري — نسبة الماء منخفضة</div>
-  <div class="widget-grid">
-    <div class="widget" style="display:flex;flex-direction:column;align-items:center;gap:8px">
-      <div class="widget-label">💧 نسبة الماء</div>
-      <div class="water-container"><div class="water-fill" style="height:35%"></div></div>
-      <div class="widget-val pink" style="font-size:22px">35%</div>
+bathroom:{emoji:'🚿',name:'الحمام',en:'BATHROOM CONTROL',html:()=>`
+<div class="w">
+  <div class="wlabel">🌡 درجة حرارة الماء</div>
+  <div class="wrow">
+    <div><div class="vbig rose" id="wTemp">38</div><div class="vunit">مئوية</div></div>
+    <div style="display:flex;gap:8px">
+      <button class="abtn ghost" style="width:40px;height:40px;padding:0;font-size:18px" onclick="adj('wTemp',-1)">−</button>
+      <button class="abtn primary" style="width:40px;height:40px;padding:0;font-size:18px" onclick="adj('wTemp',1)">+</button>
     </div>
-    <div class="widget"><div class="widget-label">🧪 الأملاح</div><div class="widget-val teal">1.8</div><div class="widget-unit">EC mS/cm</div><div class="progress-bar"><div class="progress-fill" style="width:60%;background:linear-gradient(90deg,var(--teal),var(--violet-soft))"></div></div></div>
   </div>
-  <div class="widget-grid">
-    <div class="widget"><div class="widget-label">🌡 الحرارة</div><div class="widget-val orange">26°</div><div class="widget-unit">مثالية</div></div>
-    <div class="widget"><div class="widget-label">💨 الرطوبة</div><div class="widget-val violet">68%</div><div class="widget-unit">جيدة</div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px">
+    <div class="sbtn" onclick="document.getElementById('wTemp').textContent='25';pickSound(this);si('🧊 25°')">🧊<br>25°</div>
+    <div class="sbtn on" onclick="document.getElementById('wTemp').textContent='38';pickSound(this);si('🌊 38°')">🌊<br>38°</div>
+    <div class="sbtn" onclick="document.getElementById('wTemp').textContent='45';pickSound(this);si('♨️ 45°')">♨️<br>45°</div>
   </div>
-  <div class="widget">
-    <div class="widget-label">🌿 حالة النباتات</div>
-    <div class="fridge-item"><span class="fridge-name">🍅 طماطم</span><span class="fridge-amount low">⚠ تحتاج ري</span></div>
-    <div class="fridge-item"><span class="fridge-name">🥬 خس</span><span class="fridge-amount ok">✓ بصحة جيدة</span></div>
-    <div class="fridge-item"><span class="fridge-name">🌿 نعناع</span><span class="fridge-amount ok">✓ ينمو بسرعة</span></div>
-    <div class="fridge-item"><span class="fridge-name">🫑 فلفل</span><span class="fridge-amount warn">⚠ يحتاج أملاح</span></div>
+</div>
+<div class="w">
+  <div class="wlabel">💧 استهلاك الماء اليوم</div>
+  <div class="wrow">
+    <div><div class="vbig sky">142</div><div class="vunit">لتر</div></div>
+    <div style="flex:1;margin-right:14px">
+      <div class="pbar"><div class="pfill" style="width:57%;background:linear-gradient(90deg,var(--sky),var(--lilac))"></div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:5px;text-align:left">المتوسط اليومي: 250 لتر</div>
+    </div>
   </div>
-  <button class="action-btn primary" onclick="startIrrigation(this)">💧 بدء الري التلقائي</button>`},
+</div>
+<div class="w">
+  <div class="wlabel">📊 استهلاك الأسبوع</div>
+  <div class="barchart">${[65,80,55,90,70,142,0].map((v,i)=>{
+    const d=['أح','اث','ث','أر','خ','ج','س'];
+    const c=i===5?'var(--rose)':'var(--lilac)';
+    return`<div class="bc-col"><div class="bc-bar" style="height:${v?v*.4:3}px;background:${c};opacity:${i===6?.2:.65}"></div><div class="bc-day">${d[i]}</div></div>`;
+  }).join('')}
+  </div>
+</div>
+<div class="w"><div class="wlabel">⚠️ كشف التسرب</div><div class="apill ok"><div class="blink"></div>لا يوجد تسرب — الحمام آمن تماماً ✓</div></div>`},
 
-garage:{emoji:'🚗',title:'الكراج',sub:'GARAGE CONTROL',render:()=>`
-  <div class="widget">
-    <div class="widget-label">🚪 باب الكراج</div>
-    <div class="widget-row">
-      <div style="display:flex;align-items:center;gap:10px"><div class="status-dot green" id="garageDot"></div><span class="toggle-label" id="garageStatus">مغلق ✓</span></div>
-      <div class="toggle on" id="garageToggle" onclick="toggleGarage()"></div>
+door:{emoji:'🚪',name:'عند الباب',en:'SMART DOOR',html:()=>`
+<div class="w">
+  <div class="wlabel">📹 كاميرا الباب</div>
+  <div class="cam-view">
+    <div class="cam-live">LIVE</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:9px">
+      <div class="cam-scan"></div>
+      <div style="font-size:11px;color:var(--muted);letter-spacing:2px">SCANNING...</div>
     </div>
   </div>
-  <div class="widget">
-    <div class="widget-label">🔋 شحن السيارة</div>
-    <div class="widget-row">
-      <div><div class="widget-val green">82%</div><div class="widget-unit">420 كم</div></div>
-      <div style="flex:1;margin-right:14px"><div class="progress-bar"><div class="progress-fill" style="width:82%;background:linear-gradient(90deg,#22c55e,#00f5d4)"></div></div><div style="font-size:10px;color:var(--text-dim);margin-top:5px;text-align:left">اكتمال خلال 1.5 ساعة</div></div>
+</div>
+<div class="apill info"><div class="blink"></div>يوجد شخص عند الباب — جارٍ التعرف على الوجه...</div>
+<div class="w">
+  <div class="wlabel">🔍 التعرف على الشخص</div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="width:58px;height:58px;border-radius:50%;background:var(--rg);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 0 20px rgba(255,61,139,.3)">👤</div>
+    <div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">شخص غير معرّف</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px">الوقت: الآن · الباب الرئيسي</div>
+      <div class="apill warn" style="padding:5px 12px;font-size:11px"><div class="blink"></div>ينتظر موافقتك</div>
     </div>
   </div>
-  <div class="widget-grid">
-    <div class="widget"><div class="widget-label">🌡 المحرك</div><div class="widget-val teal">24°</div><div class="widget-unit">طبيعية</div></div>
-    <div class="widget"><div class="widget-label">🌡 الكراج</div><div class="widget-val orange">32°</div><div class="widget-unit">مئوية</div></div>
-  </div>
-  <div class="alert-pill alert-good"><div class="dot"></div>السيارة في وضع ممتاز ✓</div>`},
-
-living:{emoji:'🛋',title:'غرفة المعيشة',sub:'LIVING ROOM',render:()=>`
-  <div class="widget">
-    <div class="widget-label">💡 الإضاءة</div>
-    <div class="slider-wrap"><div class="slider-row"><span style="font-size:11px;color:var(--text-dim)">السطوع</span><input type="range" class="slider" min="0" max="100" value="80" oninput="document.getElementById('lbv').textContent=this.value+'%';playSlider()"/><span class="slider-val-display" id="lbv">80%</span></div></div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:11px">
-      <button class="sound-btn active" onclick="toggleMood(this)">🌅<br><span style="font-size:9px">دافئ</span></button>
-      <button class="sound-btn" onclick="toggleMood(this)">❄<br><span style="font-size:9px">بارد</span></button>
-      <button class="sound-btn" onclick="toggleMood(this)">🌸<br><span style="font-size:9px">وردي</span></button>
-      <button class="sound-btn" onclick="toggleMood(this)">🎉<br><span style="font-size:9px">حفلة</span></button>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">🪟 النافذة</div>
-    <div class="widget-row">
-      <div style="display:flex;align-items:center;gap:10px"><div class="status-dot green"></div><span class="toggle-label" id="windowStatus">مفتوحة</span></div>
-      <div class="toggle on" id="windowToggle" onclick="toggleWindow()"></div>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">📺 التلفاز</div>
-    <div class="widget-row">
-      <div style="display:flex;align-items:center;gap:10px"><div class="status-dot red" id="tvDot"></div><span class="toggle-label" id="tvStatus">مشغّل — Netflix</span></div>
-      <div class="toggle on" id="tvToggle" onclick="toggleTV()"></div>
-    </div>
-    <div class="slider-row" style="margin-top:12px"><span style="font-size:11px;color:var(--text-dim)">🔊</span><input type="range" class="slider" min="0" max="100" value="45" oninput="document.getElementById('tvv').textContent=this.value;playSlider()"/><span class="slider-val-display" id="tvv">45</span></div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">🌬 جودة الهواء</div>
-    <div class="widget-row">
-      <div><div class="widget-val green">AQI 28</div><div class="widget-unit">ممتازة 🌿</div></div>
-      <div style="flex:1;margin-right:14px"><div class="progress-bar"><div class="progress-fill" style="width:28%;background:linear-gradient(90deg,#22c55e,#4ade80)"></div></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:#22c55e">ممتاز</span><span style="font-size:9px;color:var(--text-dim)">خطر</span></div></div>
-    </div>
-  </div>`},
-
-bathroom:{emoji:'🚿',title:'الحمام',sub:'BATHROOM CONTROL',render:()=>`
-  <div class="widget">
-    <div class="widget-label">🌡 درجة حرارة الماء</div>
-    <div class="widget-row">
-      <div><div class="widget-val pink" id="waterTemp">38</div><div class="widget-unit">مئوية</div></div>
-      <div style="display:flex;gap:8px">
-        <button class="action-btn secondary" style="width:40px;height:40px;padding:0;font-size:17px" onclick="adjustTemp('waterTemp',-1)">−</button>
-        <button class="action-btn primary"   style="width:40px;height:40px;padding:0;font-size:17px" onclick="adjustTemp('waterTemp',1)">+</button>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:11px">
-      <button class="sound-btn" onclick="document.getElementById('waterTemp').textContent='25';toggleMood(this);showSI('🧊 25°')">🧊<br><span style="font-size:10px">25°</span></button>
-      <button class="sound-btn active" onclick="document.getElementById('waterTemp').textContent='38';toggleMood(this);showSI('🌊 38°')">🌊<br><span style="font-size:10px">38°</span></button>
-      <button class="sound-btn" onclick="document.getElementById('waterTemp').textContent='45';toggleMood(this);showSI('♨️ 45°')">♨️<br><span style="font-size:10px">45°</span></button>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">💧 استهلاك الماء</div>
-    <div class="widget-row">
-      <div><div class="widget-val teal">142</div><div class="widget-unit">لتر اليوم</div></div>
-      <div style="flex:1;margin-right:14px"><div class="progress-bar"><div class="progress-fill" style="width:57%;background:linear-gradient(90deg,var(--teal),var(--violet-soft))"></div></div><div style="font-size:10px;color:var(--text-dim);margin-top:4px;text-align:left">المتوسط: 250 لتر</div></div>
-    </div>
-  </div>
-  <div class="widget">
-    <div class="widget-label">📊 استهلاك الأسبوع</div>
-    <div class="bar-chart">${[65,80,55,90,70,142,0].map((v,i)=>{const d=['أح','اث','ث','أر','خ','ج','س'];const c=i===5?'var(--pink)':'var(--violet-soft)';return'<div class="bar-col"><div class="bar-fill" style="height:'+(v?v*.42:3)+'px;background:'+c+';opacity:'+(i===6?.2:.65)+'"></div><div class="bar-day">'+d[i]+'</div></div>';}).join('')}</div>
-  </div>
-  <div class="widget"><div class="widget-label">⚠ كشف التسرب</div><div class="alert-pill alert-good"><div class="dot"></div>لا يوجد تسرب — الحمام آمن ✓</div></div>`},
-
-door:{emoji:'🚪',title:'عند الباب',sub:'SMART DOOR',render:()=>`
-  <div class="widget">
-    <div class="widget-label">📹 كاميرا الباب</div>
-    <div class="camera-view"><div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div class="camera-scan"></div><div class="camera-label">SCANNING...</div></div></div>
-  </div>
-  <div class="alert-pill" style="background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.3);color:#fbbf24">
-    <div class="dot" style="background:#fbbf24;box-shadow:0 0 10px rgba(251,191,36,.6)"></div>
-    يوجد شخص عند الباب — جارٍ التعرف...
-  </div>
-  <div class="widget">
-    <div class="widget-label">🔍 التعرف على الشخص</div>
-    <div style="display:flex;align-items:center;gap:14px">
-      <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--pink));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">👤</div>
-      <div>
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px">شخص غير معرّف</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:7px">الوقت: الآن · الباب الرئيسي</div>
-        <div class="alert-pill" style="padding:5px 11px;font-size:11px"><div class="dot"></div>انتظر موافقتك</div>
-      </div>
-    </div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-    <button class="action-btn primary" onclick="openDoor(this)">🔓 فتح الباب</button>
-    <button class="action-btn secondary" onclick="this.textContent='✅ تم الرفض';SFX.click();showSI('🔒 تم رفض الدخول')">🔒 رفض</button>
-  </div>
-  <div class="widget">
-    <div class="widget-label">📋 سجل الزوار</div>
-    <div class="fridge-item"><span class="fridge-name">👩‍👦 الأم</span><span class="fridge-amount ok" style="font-size:11px">10:30 ص</span></div>
-    <div class="fridge-item"><span class="fridge-name">📦 توصيل طلب</span><span class="fridge-amount ok" style="font-size:11px">02:15 م</span></div>
-    <div class="fridge-item"><span class="fridge-name">👤 مجهول</span><span class="fridge-amount low" style="font-size:11px">الآن ⚠</span></div>
-  </div>`}
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+  <button class="abtn primary" onclick="openDoor(this)">🔓 فتح الباب</button>
+  <button class="abtn ghost" onclick="this.textContent='✅ تم الرفض';SFX.click();si('🔒 تم رفض الدخول')">🔒 رفض الدخول</button>
+</div>
+<div class="w">
+  <div class="wlabel">📋 سجل الزوار اليوم</div>
+  <div class="lrow"><span class="lrow-name">👩‍👦 الأم</span><span class="lrow-val ok" style="font-size:11px">10:30 ص</span></div>
+  <div class="lrow"><span class="lrow-name">📦 توصيل طلب</span><span class="lrow-val ok" style="font-size:11px">02:15 م</span></div>
+  <div class="lrow"><span class="lrow-name">👤 مجهول</span><span class="lrow-val low" style="font-size:11px">الآن ⚠</span></div>
+</div>`}
 };
 
-window.addEventListener('load',()=>{
-  setTimeout(()=>{SFX.ready();showSI('◈ المرآة الذكية جاهزة');},900);
-});
+/* ═══ STARTUP SOUND ═══ */
+window.addEventListener('load',()=>{setTimeout(()=>{SFX.ready();si('◈ انعكاس المستقبل — جاهز 🌸');},1000);});
 </script>
 </body>
 </html>
