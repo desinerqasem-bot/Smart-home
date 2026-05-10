@@ -1,0 +1,407 @@
+```react
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Clock, LayoutGrid, Utensils, Bed, Sprout, Car, Sofa, Bath, DoorOpen, 
+  Thermometer, Droplets, Battery, Tv, Eye, Lock, Unlock, Volume2, 
+  Bell, Sun, Moon, Wind, ChefHat, Timer, User, Power, ShieldCheck,
+  Coffee, Lightbulb, Waves, Zap, Fan
+} from 'lucide-react';
+
+const App = () => {
+  const [stage, setStage] = useState('mirror'); 
+  const [userName, setUserName] = useState('');
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [currentSection, setCurrentSection] = useState('home');
+  const [time, setTime] = useState(new Date());
+  
+  // States for Interactivity
+  const [isLocked, setIsLocked] = useState(true);
+  const [ovenTemp, setOvenTemp] = useState(180);
+  const [carCharge, setCarCharge] = useState(85);
+  const [isWatering, setIsWatering] = useState(false);
+  const [bathTemp, setBathTemp] = useState(38);
+  const [acTemp, setAcTemp] = useState(22);
+  const [tvOn, setTvOn] = useState(false);
+  const [lights, setLights] = useState(true);
+
+  // Advanced Web Audio API
+  const playSound = useCallback((type) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+
+      if (type === 'startup') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.8);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+      } else if (type === 'click') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      } else if (type === 'action') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.linearRampToValueAtTime(600, now + 0.2);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+      }
+      osc.start();
+      osc.stop(now + 1);
+    } catch (e) { console.error("Audio error", e); }
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleIdentification = (e) => {
+    e.preventDefault();
+    if (userName.trim()) {
+      playSound('startup');
+      setAccessGranted(true);
+      setTimeout(() => setStage('dashboard'), 1200);
+    }
+  };
+
+  const SectionButton = ({ id, icon: Icon, label, color }) => (
+    <button
+      onClick={() => { setCurrentSection(id); playSound('click'); }}
+      className={`relative flex flex-col items-center justify-center w-20 h-20 rounded-[2rem] transition-all duration-500 group ${
+        currentSection === id 
+        ? `bg-${color}-500 text-white shadow-[0_0_30px_rgba(var(--tw-color-${color}-500),0.5)]` 
+        : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/80'
+      }`}
+    >
+      <Icon size={28} className={currentSection === id ? 'scale-110' : ''} />
+      <span className="absolute -bottom-6 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#020205] text-white font-['Cairo'] select-none overflow-hidden relative" dir="rtl">
+      {/* Decorative Neon Blurs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/10 blur-[150px] rounded-full animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-600/10 blur-[150px] rounded-full animate-pulse"></div>
+
+      {stage === 'mirror' && (
+        <div className="h-screen flex flex-col items-center justify-center cursor-pointer" onClick={() => setStage('identify')}>
+          <div className="text-center space-y-4 animate-in fade-in zoom-in duration-1000">
+            <h1 className="text-9xl font-['Orbitron'] font-black tracking-tighter opacity-80">
+              {time.getHours().toString().padStart(2, '0')}:{time.getMinutes().toString().padStart(2, '0')}
+            </h1>
+            <p className="text-pink-500 tracking-[1.5em] text-xs font-bold uppercase ml-[-1.5em]">System Standby</p>
+            <div className="mt-20 p-4 border border-white/10 rounded-full animate-bounce">
+                <Power className="text-white/20" size={30} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {stage === 'identify' && (
+        <div className="h-screen flex items-center justify-center animate-in fade-in duration-500">
+          <div className="w-full max-w-md p-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl">
+            <div className="text-center space-y-8">
+              <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-pink-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg shadow-pink-500/20">
+                <User size={48} />
+              </div>
+              <h2 className="text-3xl font-black">أهلاً بك في المستقبل</h2>
+              {!accessGranted ? (
+                <form onSubmit={handleIdentification} className="space-y-4">
+                  <input 
+                    type="text" 
+                    placeholder="اكتب اسمك..." 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-center text-xl outline-none focus:border-pink-500 transition-all"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                  />
+                  <button className="w-full py-5 bg-white text-black font-black rounded-2xl hover:scale-[1.02] active:scale-95 transition-all">بدء التشغيل</button>
+                </form>
+              ) : (
+                <div className="py-6 space-y-4 animate-pulse">
+                  <ShieldCheck className="mx-auto text-green-400" size={60} />
+                  <p className="text-xl font-bold">مرحباً يا {userName === 'المها' ? 'المها ✨' : userName}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {stage === 'dashboard' && (
+        <div className="h-screen flex flex-col p-6 gap-6 animate-in zoom-in-95 duration-700">
+          {/* Top Bar */}
+          <header className="flex items-center justify-between bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-[2.5rem]">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-pink-500/40">
+                <User size={24} />
+              </div>
+              <div>
+                <h3 className="font-black text-lg leading-tight">بيت المها الذكي</h3>
+                <p className="text-[10px] text-white/40 uppercase tracking-widest">Active Security Protocol Alpha</p>
+              </div>
+            </div>
+            <div className="text-right font-['Orbitron']">
+               <div className="text-3xl font-black text-white/90">{time.toLocaleTimeString('en-US', {hour12: false})}</div>
+               <div className="text-[10px] text-pink-500 font-bold uppercase tracking-widest">Real-time Sync</div>
+            </div>
+          </header>
+
+          <div className="flex-1 flex gap-6 overflow-hidden">
+            {/* Sidebar Navigation */}
+            <aside className="w-24 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[3rem] flex flex-col items-center py-10 gap-8">
+               <SectionButton id="kitchen" icon={Utensils} label="المطبخ" color="orange" />
+               <SectionButton id="bedroom" icon={Bed} label="النوم" color="purple" />
+               <SectionButton id="farm" icon={Sprout} label="المزرعة" color="green" />
+               <SectionButton id="garage" icon={Car} label="الكراج" color="blue" />
+               <SectionButton id="living" icon={Sofa} label="المعيشة" color="pink" />
+               <SectionButton id="bath" icon={Bath} label="الحمام" color="cyan" />
+               <SectionButton id="door" icon={DoorOpen} label="الباب" color="red" />
+            </aside>
+
+            {/* Content Area */}
+            <main className="flex-1 overflow-y-auto no-scrollbar pb-10">
+               {currentSection === 'home' ? (
+                 <div className="h-full flex items-center justify-center opacity-10 animate-pulse">
+                    <img src="https://api.iconify.design/solar:home-2-bold-duotone.svg?color=white" className="w-64" alt="Home" />
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in slide-in-from-bottom-10 duration-500">
+                    
+                    {/* Kitchen */}
+                    {currentSection === 'kitchen' && (
+                      <>
+                        <ControlCard title="حرارة الفرن" icon={ChefHat} color="orange" value={ovenTemp + "°C"}>
+                           <div className="flex gap-4 mt-4">
+                             <button onClick={() => {setOvenTemp(v => v+10); playSound('action');}} className="flex-1 py-4 bg-orange-500/20 rounded-2xl border border-orange-500/30 hover:bg-orange-500/40 transition-all font-bold">زيادة</button>
+                             <button onClick={() => {setOvenTemp(v => v-10); playSound('action');}} className="flex-1 py-4 bg-orange-500/20 rounded-2xl border border-orange-500/30 hover:bg-orange-500/40 transition-all font-bold">خفص</button>
+                           </div>
+                        </ControlCard>
+                        <ControlCard title="مؤقت الطبخ" icon={Timer} color="yellow" value="12:45">
+                           <button onClick={() => playSound('action')} className="w-full mt-4 py-4 bg-white/10 rounded-2xl font-bold hover:bg-white/20 transition-all">تشغيل المؤقت</button>
+                        </ControlCard>
+                        <div className="lg:col-span-2 bg-red-500/10 border border-red-500/20 p-6 rounded-[2.5rem]">
+                           <h4 className="text-red-400 font-black mb-4 flex items-center gap-2"><Bell size={20}/> تنبيه النواقص</h4>
+                           <div className="flex flex-wrap gap-3">
+                              {['الحليب انتهى', 'البيض متبقي 2', 'الجبن قارب على الانتهاء'].map(t => (
+                                <span key={t} className="px-4 py-2 bg-red-500/20 text-white text-xs rounded-full border border-red-500/30">! {t}</span>
+                              ))}
+                           </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Bedroom */}
+                    {currentSection === 'bedroom' && (
+                      <>
+                        <ControlCard title="التكييف" icon={Fan} color="purple" value={acTemp + "°C"}>
+                           <div className="flex items-center gap-4 mt-4">
+                              <button onClick={() => {setAcTemp(v => v-1); playSound('action');}} className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">-</button>
+                              <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                 <div className="h-full bg-purple-500" style={{width: `${(acTemp/30)*100}%`}}></div>
+                              </div>
+                              <button onClick={() => {setAcTemp(v => v+1); playSound('action');}} className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">+</button>
+                           </div>
+                        </ControlCard>
+                        <ControlCard title="الإضاءة" icon={lights ? Lightbulb : Moon} color="indigo" value={lights ? "مضاءة" : "مطفأة"}>
+                           <button 
+                            onClick={() => {setLights(!lights); playSound('action');}}
+                            className={`w-full mt-4 py-4 rounded-2xl font-black transition-all ${lights ? 'bg-indigo-500 text-white' : 'bg-white/10 text-white/40'}`}
+                           >
+                              {lights ? 'إطفاء الأنوار' : 'تشغيل الأنوار'}
+                           </button>
+                        </ControlCard>
+                      </>
+                    )}
+
+                    {/* Farm */}
+                    {currentSection === 'farm' && (
+                      <>
+                        <ControlCard title="الري الذكي" icon={Droplets} color="green" value={isWatering ? "جاري الري..." : "متوقف"}>
+                           <div className={`w-full h-32 mt-4 rounded-2xl bg-black/40 relative overflow-hidden flex items-center justify-center ${isWatering ? 'animate-pulse' : ''}`}>
+                              {isWatering ? <Waves className="text-blue-400 w-16 h-16" /> : <Sprout className="text-green-800 w-16 h-16" />}
+                           </div>
+                           <button 
+                            onClick={() => {setIsWatering(!isWatering); playSound('action');}}
+                            className={`w-full mt-4 py-4 rounded-2xl font-black transition-all ${isWatering ? 'bg-blue-500 text-white' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}
+                           >
+                             {isWatering ? 'إيقاف الري' : 'ابدأ الري الآن'}
+                           </button>
+                        </ControlCard>
+                        <div className="space-y-4">
+                           <MetricBar label="نسبة الرطوبة" value={65} color="green" />
+                           <MetricBar label="نسبة الأملاح" value={12} color="yellow" />
+                           <MetricBar label="درجة الحرارة" value={28} color="orange" />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Garage */}
+                    {currentSection === 'garage' && (
+                      <>
+                        <ControlCard title="شحن السيارة" icon={Zap} color="blue" value={carCharge + "%"}>
+                           <div className="mt-4 space-y-4">
+                              <div className="w-full h-4 bg-white/10 rounded-full overflow-hidden">
+                                 <div className="h-full bg-blue-500 transition-all duration-1000" style={{width: `${carCharge}%`}}></div>
+                              </div>
+                              <button 
+                                onClick={() => { if(carCharge < 100) {setCarCharge(v => v+1); playSound('action');} }}
+                                className="w-full py-4 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-2xl font-bold hover:bg-blue-500/40"
+                              >
+                                تفعيل الشحن السريع
+                              </button>
+                           </div>
+                        </ControlCard>
+                        <ControlCard title="باب الكراج" icon={isLocked ? Lock : Unlock} color="cyan" value={isLocked ? "مغلق" : "مفتوح"}>
+                            <button 
+                              onClick={() => {setIsLocked(!isLocked); playSound('action');}}
+                              className={`w-full h-32 mt-4 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${isLocked ? 'border-white/10 text-white/40' : 'border-cyan-500 bg-cyan-500/10 text-cyan-400'}`}
+                            >
+                               <Car size={40} className={!isLocked ? 'animate-bounce' : ''} />
+                               <span className="text-xs font-black uppercase tracking-tighter">{isLocked ? 'فتح الباب' : 'إغلاق الباب'}</span>
+                            </button>
+                        </ControlCard>
+                      </>
+                    )}
+
+                    {/* Living Room */}
+                    {currentSection === 'living' && (
+                      <>
+                        <ControlCard title="الترفيه" icon={Tv} color="pink" value={tvOn ? "ON" : "OFF"}>
+                           <div className="grid grid-cols-2 gap-4 mt-4">
+                              <button onClick={() => {setTvOn(!tvOn); playSound('action');}} className={`p-4 rounded-2xl font-bold ${tvOn ? 'bg-pink-500 text-white' : 'bg-white/10'}`}>التلفاز</button>
+                              <button onClick={() => playSound('action')} className="p-4 rounded-2xl bg-white/10 font-bold">النافذة</button>
+                           </div>
+                        </ControlCard>
+                        <ControlCard title="جودة الهواء" icon={Wind} color="teal" value="ممتاز">
+                           <div className="mt-4 p-4 bg-teal-500/10 border border-teal-500/20 rounded-2xl flex items-center justify-between">
+                              <span className="text-xs text-white/60">نسبة التلوث: 0.02%</span>
+                              <div className="w-12 h-2 bg-teal-500 rounded-full"></div>
+                           </div>
+                        </ControlCard>
+                      </>
+                    )}
+
+                    {/* Bath */}
+                    {currentSection === 'bath' && (
+                      <ControlCard title="تجهيز الحمام" icon={Waves} color="cyan" value={bathTemp + "°C"}>
+                         <div className="mt-4 space-y-6">
+                            <div className="flex justify-between items-center px-2">
+                               <span className="text-white/40">حرارة الماء</span>
+                               <span className="text-cyan-400 font-black">{bathTemp}°</span>
+                            </div>
+                            <input 
+                              type="range" min="20" max="50" value={bathTemp} 
+                              onChange={(e) => setBathTemp(parseInt(e.target.value))}
+                              className="w-full accent-cyan-500" 
+                            />
+                            <button onClick={() => playSound('action')} className="w-full py-4 bg-cyan-500 text-black font-black rounded-2xl">بدء تعبئة الحوض</button>
+                         </div>
+                      </ControlCard>
+                    )}
+
+                    {/* Door */}
+                    {currentSection === 'door' && (
+                      <Card title="مراقبة البوابة" icon={Eye} color="red">
+                         <div className="relative aspect-video bg-black rounded-3xl overflow-hidden border border-white/10 mb-6">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-red-500/20">
+                               <User size={64} className="animate-pulse" />
+                               <p className="text-[10px] mt-2 font-mono">SCANNING PERSON...</p>
+                            </div>
+                            <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600 px-2 py-1 rounded text-[10px] font-bold">
+                               <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping"></div> LIVE
+                            </div>
+                         </div>
+                         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-4">
+                            <p className="text-red-400 text-sm font-bold text-center animate-bounce italic">تنبيه: يوجد شخص غريب عند الباب!</p>
+                         </div>
+                         <button 
+                          onClick={() => {setIsLocked(!isLocked); playSound('action');}}
+                          className={`w-full py-5 rounded-[2rem] font-black transition-all flex items-center justify-center gap-3 ${isLocked ? 'bg-red-600' : 'bg-green-600 shadow-[0_0_20px_rgba(22,163,74,0.5)]'}`}
+                         >
+                           {isLocked ? <Lock size={20}/> : <Unlock size={20}/>}
+                           {isLocked ? 'فتح الباب الذكي' : 'تم فتح القفل'}
+                         </button>
+                      </Card>
+                    )}
+
+                 </div>
+               )}
+            </main>
+          </div>
+
+          {/* Quick Footer Stats */}
+          <footer className="grid grid-cols-4 gap-4">
+             <QuickStat label="استهلاك الكهرباء" value="2.4 Kw/h" icon={Zap} color="yellow" />
+             <QuickStat label="استهلاك المياه" value="450 L" icon={Droplets} color="blue" />
+             <QuickStat label="درجة الحرارة" value="24°C" icon={Thermometer} color="orange" />
+             <QuickStat label="جودة الهواء" value="98%" icon={Wind} color="green" />
+          </footer>
+        </div>
+      )}
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Orbitron:wght@400;700;900&display=swap');
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type=range] { -webkit-appearance: none; background: rgba(255,255,255,0.1); border-radius: 10px; height: 6px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: white; cursor: pointer; }
+      `}</style>
+    </div>
+  );
+};
+
+const Card = ({ title, icon: Icon, children, color }) => (
+  <div className="bg-white/5 backdrop-blur-3xl border border-white/10 p-8 rounded-[3rem] shadow-xl relative overflow-hidden">
+    <div className={`absolute -top-10 -right-10 w-32 h-32 bg-${color}-500/10 blur-[60px] rounded-full`}></div>
+    <div className="flex items-center gap-4 mb-6">
+       <div className={`p-4 rounded-2xl bg-${color}-500/10 text-${color}-400`}>
+          <Icon size={28} />
+       </div>
+       <h3 className="text-xl font-black">{title}</h3>
+    </div>
+    {children}
+  </div>
+);
+
+const ControlCard = ({ title, icon, color, value, children }) => (
+  <Card title={title} icon={icon} color={color}>
+     <div className="text-center">
+        <div className={`text-5xl font-['Orbitron'] font-black text-${color}-400 mb-2 drop-shadow-[0_0_10px_rgba(var(--tw-color-${color}-500),0.3)]`}>{value}</div>
+        {children}
+     </div>
+  </Card>
+);
+
+const MetricBar = ({ label, value, color }) => (
+  <div className="bg-white/5 p-5 rounded-3xl border border-white/10">
+     <div className="flex justify-between mb-2 px-1">
+        <span className="text-xs text-white/40">{label}</span>
+        <span className={`text-xs font-bold text-${color}-400`}>{value}%</span>
+     </div>
+     <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <div className={`h-full bg-${color}-500 transition-all duration-1000`} style={{width: `${value}%`}}></div>
+     </div>
+  </div>
+);
+
+const QuickStat = ({ label, value, icon: Icon, color }) => (
+  <div className="bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-3xl flex items-center gap-4">
+     <div className={`p-2 rounded-xl bg-${color}-500/10 text-${color}-400`}><Icon size={18} /></div>
+     <div>
+        <div className="text-[9px] text-white/30 uppercase font-bold">{label}</div>
+        <div className="text-xs font-black">{value}</div>
+     </div>
+  </div>
+);
+
+export default App;
+
+```
